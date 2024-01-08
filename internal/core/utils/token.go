@@ -6,6 +6,7 @@ import (
 	"os"
 	"speed-typing-auth-service/internal/core/domain"
 	"speed-typing-auth-service/internal/core/errors"
+	"strconv"
 	"time"
 )
 
@@ -15,7 +16,7 @@ func GenerateAccessJWT(user domain.User) (accessToken string, err error) {
 	token := jwt.New(jwt.SigningMethodHS256)
 	claims := token.Claims.(jwt.MapClaims)
 
-	accessTokenExp, err := time.ParseDuration(os.Getenv("ACCESS_TOKEN_EXP_SECONDS"))
+	accessTokenExp, err := strconv.ParseInt(os.Getenv("ACCESS_TOKEN_EXP"), 10, 64)
 	if err != nil {
 		return accessToken, &errors.TokenGenerationError{
 			Message: fmt.Sprintf("access token generation error due to: %s", err.Error()),
@@ -25,7 +26,7 @@ func GenerateAccessJWT(user domain.User) (accessToken string, err error) {
 	claims["ID"] = user.ID
 	claims["nickname"] = user.Nickname
 	claims["iat"] = time.Now().Unix()
-	claims["exp"] = time.Now().Add(time.Second * accessTokenExp).Unix()
+	claims["exp"] = time.Now().Unix() + accessTokenExp
 
 	accessToken, err = token.SignedString(secretKey)
 
@@ -41,7 +42,7 @@ func GenerateRefreshJWT(ID string) (refreshToken string, err error) {
 	token := jwt.New(jwt.SigningMethodHS256)
 	claims := token.Claims.(jwt.MapClaims)
 
-	refreshTokenExp, err := time.ParseDuration(os.Getenv("REFRESH_TOKEN_EXP_SECONDS"))
+	refreshTokenExp, err := strconv.ParseInt(os.Getenv("REFRESH_TOKEN_EXP"), 10, 64)
 	if err != nil {
 		return refreshToken, &errors.TokenGenerationError{
 			Message: fmt.Sprintf("refresh token generation error due to: %s", err.Error()),
@@ -50,7 +51,7 @@ func GenerateRefreshJWT(ID string) (refreshToken string, err error) {
 
 	claims["ID"] = ID
 	claims["iat"] = time.Now().Unix()
-	claims["exp"] = time.Now().Add(time.Second * refreshTokenExp).Unix()
+	claims["exp"] = time.Now().Unix() + refreshTokenExp
 
 	refreshToken, err = token.SignedString(secretKey)
 

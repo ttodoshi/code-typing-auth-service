@@ -8,7 +8,7 @@ import (
 	"speed-typing-auth-service/internal/core/errors"
 	"speed-typing-auth-service/internal/core/ports"
 	"speed-typing-auth-service/pkg/logging"
-	"time"
+	"strconv"
 )
 
 type AuthHandler struct {
@@ -40,6 +40,16 @@ func (h *AuthHandler) Register(c *gin.Context) {
 		err = c.Error(err)
 		return
 	}
+
+	refreshTokenExp, err := strconv.Atoi(os.Getenv("REFRESH_TOKEN_EXP"))
+	if err != nil {
+		err = c.Error(&errors.TokenGenerationError{
+			Message: fmt.Sprintf("refresh token generation error due to: %s", err.Error()),
+		})
+		return
+	}
+
+	c.SetCookie("refreshToken", refresh, refreshTokenExp, "/", os.Getenv("COOKIE_HOST"), false, true)
 	c.JSON(201, gin.H{
 		"access":  access,
 		"refresh": refresh,
@@ -64,7 +74,7 @@ func (h *AuthHandler) Login(c *gin.Context) {
 		return
 	}
 
-	refreshTokenExp, err := time.ParseDuration(os.Getenv("REFRESH_TOKEN_EXP_SECONDS"))
+	refreshTokenExp, err := strconv.Atoi(os.Getenv("REFRESH_TOKEN_EXP"))
 	if err != nil {
 		err = c.Error(&errors.TokenGenerationError{
 			Message: fmt.Sprintf("refresh token generation error due to: %s", err.Error()),
@@ -72,7 +82,7 @@ func (h *AuthHandler) Login(c *gin.Context) {
 		return
 	}
 
-	c.SetCookie("refreshToken", refresh, int(refreshTokenExp.Seconds()), "/", os.Getenv("COOKIE_HOST"), false, true)
+	c.SetCookie("refreshToken", refresh, refreshTokenExp, "/", os.Getenv("COOKIE_HOST"), false, true)
 	c.JSON(200, gin.H{
 		"access":  access,
 		"refresh": refresh,
@@ -99,7 +109,7 @@ func (h *AuthHandler) Refresh(c *gin.Context) {
 		return
 	}
 
-	refreshTokenExp, err := time.ParseDuration(os.Getenv("REFRESH_TOKEN_EXP_SECONDS"))
+	refreshTokenExp, err := strconv.Atoi(os.Getenv("REFRESH_TOKEN_EXP"))
 	if err != nil {
 		err = c.Error(&errors.TokenGenerationError{
 			Message: fmt.Sprintf("refresh token generation error due to: %s", err.Error()),
@@ -107,7 +117,7 @@ func (h *AuthHandler) Refresh(c *gin.Context) {
 		return
 	}
 
-	c.SetCookie("refreshToken", refresh, int(refreshTokenExp.Seconds()), "/", os.Getenv("COOKIE_HOST"), false, true)
+	c.SetCookie("refreshToken", refresh, refreshTokenExp, "/", os.Getenv("COOKIE_HOST"), false, true)
 	c.JSON(200, gin.H{
 		"access":  access,
 		"refresh": refresh,

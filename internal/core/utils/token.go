@@ -23,7 +23,7 @@ func GenerateAccessJWT(user domain.User) (accessToken string, err error) {
 		}
 	}
 
-	claims["ID"] = user.ID
+	claims["sub"] = user.ID.Hex()
 	claims["nickname"] = user.Nickname
 	claims["iat"] = time.Now().Unix()
 	claims["exp"] = time.Now().Unix() + accessTokenExp
@@ -49,7 +49,7 @@ func GenerateRefreshJWT(ID string) (refreshToken string, err error) {
 		}
 	}
 
-	claims["ID"] = ID
+	claims["sub"] = ID
 	claims["iat"] = time.Now().Unix()
 	claims["exp"] = time.Now().Unix() + refreshTokenExp
 
@@ -61,54 +61,4 @@ func GenerateRefreshJWT(ID string) (refreshToken string, err error) {
 		}
 	}
 	return refreshToken, nil
-}
-
-func IsTokenValid(token string) (bool, error) {
-	parsedToken, err := jwt.Parse(token, func(token *jwt.Token) (interface{}, error) {
-		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-			return "", &errors.TokenParsingError{
-				Message: fmt.Sprintf("token parsing error"),
-			}
-		}
-		return secretKey, nil
-	})
-	if err != nil {
-		return false, err
-	}
-
-	claims, ok := parsedToken.Claims.(jwt.MapClaims)
-	if !ok {
-		return false, &errors.TokenParsingError{
-			Message: "error while extracting claims from token",
-		}
-	}
-
-	exp := claims["exp"].(int64)
-	if exp < time.Now().Local().Unix() {
-		return false, nil
-	}
-	return true, nil
-}
-
-func ExtractNickname(token string) (nickname string, err error) {
-	parsedToken, err := jwt.Parse(token, func(token *jwt.Token) (interface{}, error) {
-		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-			return "", &errors.TokenParsingError{
-				Message: fmt.Sprintf("token parsing error"),
-			}
-		}
-		return secretKey, nil
-	})
-	if err != nil {
-		return nickname, err
-	}
-
-	claims, ok := parsedToken.Claims.(jwt.MapClaims)
-	if !ok {
-		return nickname, &errors.TokenParsingError{
-			Message: "error while extracting claims from token",
-		}
-	}
-
-	return claims["nickname"].(string), nil
 }

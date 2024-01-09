@@ -29,13 +29,13 @@ func (s *AuthService) Register(registerRequestDto dto.RegisterRequestDto) (acces
 	}
 
 	err = copier.Copy(&user, &registerRequestDto)
-	_, err = s.userRepo.SaveUser(user)
+	user, err = s.userRepo.SaveUser(user)
 	if err != nil {
 		return accessToken, refreshToken, err
 	}
 
 	accessToken, err = utils.GenerateAccessJWT(user)
-	refreshToken, err = utils.GenerateRefreshJWT(user.Nickname)
+	refreshToken, err = utils.GenerateRefreshJWT(user.ID.Hex())
 	if err != nil {
 		return accessToken, refreshToken, err
 	}
@@ -68,7 +68,7 @@ func (s *AuthService) Login(loginRequestDto dto.LoginRequestDto) (accessToken st
 	}
 
 	accessToken, err = utils.GenerateAccessJWT(user)
-	refreshToken, err = utils.GenerateRefreshJWT(user.Nickname)
+	refreshToken, err = utils.GenerateRefreshJWT(user.ID.Hex())
 	if err != nil {
 		return accessToken, refreshToken, err
 	}

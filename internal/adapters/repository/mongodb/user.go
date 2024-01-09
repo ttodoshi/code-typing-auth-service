@@ -46,24 +46,24 @@ func (r *UserRepository) GetUserByEmail(email string) (user domain.User, err err
 	return user, nil
 }
 
-func (r *UserRepository) SaveUser(user domain.User) (ID string, err error) {
+func (r *UserRepository) SaveUser(user domain.User) (domain.User, error) {
+	var err error
 	_, err = r.GetUserByNickname(user.Nickname)
 	if err == nil {
-		return ID, &errors.AlreadyExistsError{
+		return user, &errors.AlreadyExistsError{
 			Message: fmt.Sprintf("nickname already picked"),
 		}
 	}
 	_, err = r.GetUserByEmail(user.Email)
 	if err == nil {
-		return ID, &errors.AlreadyExistsError{
+		return user, &errors.AlreadyExistsError{
 			Message: fmt.Sprintf("account with this email already exists"),
 		}
 	}
 
 	err = mgm.Coll(&user).Create(&user)
 	if err != nil {
-		return ID, fmt.Errorf(`user not created due to error: %v`, err)
+		return user, fmt.Errorf(`user not created due to error: %v`, err)
 	}
-	ID = user.ID.Hex()
-	return ID, nil
+	return user, nil
 }

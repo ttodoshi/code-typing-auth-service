@@ -25,5 +25,5 @@ type UserRepository interface {
 	GetUserByID(ID string) (domain.User, error)
 	GetUserByNickname(nickname string) (domain.User, error)
 	GetUserByEmail(email string) (domain.User, error)
-	SaveUser(user domain.User) (string, error)
+	SaveUser(user domain.User) (domain.User, error)
 }

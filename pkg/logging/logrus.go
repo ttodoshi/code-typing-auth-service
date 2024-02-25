@@ -22,12 +22,14 @@ func Init() {
 	l := logrus.New()
 	l.SetReportCaller(true)
 	l.Formatter = &logrus.TextFormatter{
+		TimestampFormat: "02-01-2006 15:04:05.000",
+		FullTimestamp:   true,
+		DisableColors:   false,
+		ForceColors:     true,
+		PadLevelText:    true,
 		CallerPrettyfier: func(frame *runtime.Frame) (function string, file string) {
-			filename := path.Base(frame.File)
-			return fmt.Sprintf("%s()", frame.Function), fmt.Sprintf("%s:%d", filename, frame.Line)
+			return fmt.Sprintf("%s()", frame.Function), fmt.Sprintf(" [%s:%d]", path.Base(frame.File), frame.Line)
 		},
-		DisableColors: false,
-		FullTimestamp: true,
 	}
 
 	err := os.MkdirAll("logs", 0744)
@@ -35,7 +37,7 @@ func Init() {
 		panic(err)
 	}
 
-	allFile, err := os.OpenFile("logs/all.log", os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0640)
+	logFile, err := os.OpenFile("logs/info.log", os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0640)
 	if err != nil {
 		return
 	}
@@ -43,7 +45,7 @@ func Init() {
 	l.SetOutput(io.Discard)
 
 	l.AddHook(&writerHook{
-		Writer:    []io.Writer{allFile, os.Stdout},
+		Writer:    []io.Writer{logFile, os.Stdout},
 		LogLevels: logrus.AllLevels,
 	})
 

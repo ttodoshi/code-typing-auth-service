@@ -23,6 +23,17 @@ func NewAuthHandler(svc ports.AuthService, log logging.Logger) *AuthHandler {
 	}
 }
 
+// Register godoc
+//
+//	@Summary		Register new user
+//	@Description	Register new user
+//	@Tags			auth
+//	@Accept			json
+//	@Produce		json
+//	@Param			request	body		dto.RegisterRequestDto	true	"Register request"
+//	@Success		201		{object}	dto.AuthResponseDto
+//	@Header			200		{string}	refreshToken	"token"
+//	@Router			/auth/registration [post]
 func (h *AuthHandler) Register(c *gin.Context) {
 	h.log.Debug("received register request")
 
@@ -46,12 +57,23 @@ func (h *AuthHandler) Register(c *gin.Context) {
 	}
 
 	c.SetCookie("refreshToken", refresh, refreshTokenExp, "/", os.Getenv("COOKIE_HOST"), false, true)
-	c.JSON(201, gin.H{
-		"access":  access,
-		"refresh": refresh,
+	c.JSON(201, dto.AuthResponseDto{
+		Access:  access,
+		Refresh: refresh,
 	})
 }
 
+// Login godoc
+//
+//	@Summary		Login
+//	@Description	Login
+//	@Tags			auth
+//	@Accept			json
+//	@Produce		json
+//	@Param			request	body		dto.LoginRequestDto	true	"Login request"
+//	@Success		200		{object}	dto.AuthResponseDto
+//	@Header			200		{string}	refreshToken	"token"
+//	@Router			/auth/login [post]
 func (h *AuthHandler) Login(c *gin.Context) {
 	h.log.Debug("received login request")
 
@@ -75,12 +97,23 @@ func (h *AuthHandler) Login(c *gin.Context) {
 	}
 
 	c.SetCookie("refreshToken", refresh, refreshTokenExp, "/", os.Getenv("COOKIE_HOST"), false, true)
-	c.JSON(200, gin.H{
-		"access":  access,
-		"refresh": refresh,
+	c.JSON(200, dto.AuthResponseDto{
+		Access:  access,
+		Refresh: refresh,
 	})
 }
 
+// Refresh godoc
+//
+//	@Summary		Refresh
+//	@Description	Refresh
+//	@Tags			auth
+//	@Accept			json
+//	@Produce		json
+//	@Param			refreshToken	header		string	true	"Refresh token"
+//	@Success		200				{object}	dto.AuthResponseDto
+//	@Header			200				{string}	refreshToken	"token"
+//	@Router			/auth/refresh [get]
 func (h *AuthHandler) Refresh(c *gin.Context) {
 	h.log.Debug("received refresh request")
 
@@ -104,12 +137,22 @@ func (h *AuthHandler) Refresh(c *gin.Context) {
 	}
 
 	c.SetCookie("refreshToken", refresh, refreshTokenExp, "/", os.Getenv("COOKIE_HOST"), false, true)
-	c.JSON(200, gin.H{
-		"access":  access,
-		"refresh": refresh,
+	c.JSON(200, dto.AuthResponseDto{
+		Access:  access,
+		Refresh: refresh,
 	})
 }
 
+// Logout godoc
+//
+//	@Summary		Logout
+//	@Description	Logout
+//	@Tags			auth
+//	@Accept			json
+//	@Produce		json
+//	@Param			refreshToken	header	string	true	"Refresh token"
+//	@Success		204
+//	@Router			/auth/logout [delete]
 func (h *AuthHandler) Logout(c *gin.Context) {
 	h.log.Debug("received logout request")
 

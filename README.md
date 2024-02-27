@@ -2,26 +2,5 @@
 
 speed typing auth service written on golang with MongoDB and gin framework
 
-endpoints:
+swagger url: [http://localhost:8090/swagger-ui/index.html](http://localhost:8090/swagger-ui/index.html)
 
-- **POST /api/v1/auth/registration/**
-
-```json
-{
-  "nickname": "user",
-  "email": "user@gmail.com",
-  "password": "password"
-}
-```
-
-- **POST /api/v1/auth/login/** (login by nickname or email)
-
-```json
-{
-  "login": "user",
-  "password": "password"
-}
-```
-
-- **GET /api/v1/auth/refresh/**
-- **DELETE /api/v1/auth/logout/**

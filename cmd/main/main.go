@@ -4,8 +4,11 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/hashicorp/consul/api"
 	"github.com/kamva/mgm/v3"
+	swaggerFiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"os"
+	_ "speed-typing-auth-service/docs"
 	"speed-typing-auth-service/internal/adapters/handler"
 	"speed-typing-auth-service/internal/adapters/repository/mongodb"
 	"speed-typing-auth-service/internal/core/ports"
@@ -46,6 +49,11 @@ func main() {
 	initRoutes()
 }
 
+//	@title						Auth Service API
+//	@version					1.0
+//	@host						localhost:8090
+//	@BasePath					/api/v1
+//	@externalDocs.description	OpenAPI
 func initRoutes() {
 	r := gin.Default()
 
@@ -53,6 +61,9 @@ func initRoutes() {
 	r.Use(handler.ErrorHandlerMiddleware())
 
 	log.Info("initializing handlers")
+
+	// swagger
+	r.GET("/swagger-ui/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
 	apiGroup := r.Group("/api")
 

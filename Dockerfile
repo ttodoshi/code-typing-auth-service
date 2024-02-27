@@ -6,6 +6,7 @@ COPY go.mod go.sum ./
 COPY internal internal
 COPY pkg pkg
 COPY cmd cmd
+COPY docs docs
 
 RUN go mod tidy
 

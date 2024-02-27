@@ -6,10 +6,10 @@ import (
 )
 
 type AuthService interface {
-	Register(registerRequestDto dto.RegisterRequestDto) (accessToken string, refreshToken string, err error)
-	Login(loginRequestDto dto.LoginRequestDto) (accessToken string, refreshToken string, err error)
-	Refresh(refreshRequestDto dto.RefreshRequestDto) (accessToken string, refreshToken string, err error)
-	Logout(logoutRequestDto dto.LogoutRequestDto)
+	Register(registerRequestDto dto.RegisterRequestDto) (access string, refresh string, err error)
+	Login(loginRequestDto dto.LoginRequestDto) (access string, refresh string, err error)
+	Refresh(oldRefreshToken string) (access string, refresh string, err error)
+	Logout(refreshToken string)
 }
 
 //go:generate go run github.com/vektra/mockery/v2@v2.39.1 --name=RefreshTokenRepository

@@ -36,10 +36,6 @@ func (h *AuthHandler) Register(c *gin.Context) {
 	}
 
 	access, refresh, err := h.svc.Register(registerRequestDto)
-	if err != nil {
-		err = c.Error(err)
-		return
-	}
 
 	refreshTokenExp, err := strconv.Atoi(os.Getenv("REFRESH_TOKEN_EXP"))
 	if err != nil {
@@ -69,10 +65,6 @@ func (h *AuthHandler) Login(c *gin.Context) {
 	}
 
 	access, refresh, err := h.svc.Login(loginRequestDto)
-	if err != nil {
-		err = c.Error(err)
-		return
-	}
 
 	refreshTokenExp, err := strconv.Atoi(os.Getenv("REFRESH_TOKEN_EXP"))
 	if err != nil {
@@ -101,13 +93,7 @@ func (h *AuthHandler) Refresh(c *gin.Context) {
 		return
 	}
 
-	access, refresh, err := h.svc.Refresh(dto.RefreshRequestDto{
-		RefreshToken: refreshTokenCookie,
-	})
-	if err != nil {
-		err = c.Error(err)
-		return
-	}
+	access, refresh, err := h.svc.Refresh(refreshTokenCookie)
 
 	refreshTokenExp, err := strconv.Atoi(os.Getenv("REFRESH_TOKEN_EXP"))
 	if err != nil {
@@ -136,9 +122,7 @@ func (h *AuthHandler) Logout(c *gin.Context) {
 		return
 	}
 
-	h.svc.Logout(dto.LogoutRequestDto{
-		RefreshToken: refreshTokenCookie,
-	})
+	h.svc.Logout(refreshTokenCookie)
 
 	c.SetCookie("refreshToken", "", 0, "/", os.Getenv("COOKIE_HOST"), false, true)
 	c.Status(204)

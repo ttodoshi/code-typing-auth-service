@@ -20,90 +20,84 @@ func NewAuthService(userRepo ports.UserRepository, tokenRepo ports.RefreshTokenR
 	return &AuthService{userRepo: userRepo, tokenRepo: tokenRepo, log: log}
 }
 
-func (s *AuthService) Register(registerRequestDto dto.RegisterRequestDto) (accessToken string, refreshToken string, err error) {
+func (s *AuthService) Register(registerRequestDto dto.RegisterRequestDto) (access string, refresh string, err error) {
 	var user domain.User
 
 	registerRequestDto.Password, err = utils.HashPassword(registerRequestDto.Password)
 	if err != nil {
-		return accessToken, refreshToken, err
+		return
 	}
 
 	err = copier.Copy(&user, &registerRequestDto)
 	user, err = s.userRepo.SaveUser(user)
 	if err != nil {
-		return accessToken, refreshToken, err
+		return
 	}
 
-	accessToken, err = utils.GenerateAccessJWT(user)
-	refreshToken, err = utils.GenerateRefreshJWT(user.ID.Hex())
+	access, refresh, err = s.generateTokens(user)
 	if err != nil {
-		return accessToken, refreshToken, err
+		return
 	}
 
 	_, err = s.tokenRepo.SaveRefreshToken(domain.RefreshToken{
 		User:  user.ID,
-		Token: refreshToken,
+		Token: refresh,
 	})
-	if err != nil {
-		return accessToken, refreshToken, err
-	}
-	return accessToken, refreshToken, nil
+	return
 }
 
-func (s *AuthService) Login(loginRequestDto dto.LoginRequestDto) (accessToken string, refreshToken string, err error) {
+func (s *AuthService) Login(loginRequestDto dto.LoginRequestDto) (access string, refresh string, err error) {
 	var user domain.User
 	user, err = s.userRepo.GetUserByNickname(loginRequestDto.Login)
 	if err != nil {
 		user, err = s.userRepo.GetUserByEmail(loginRequestDto.Login)
 		if err != nil {
-			return accessToken, refreshToken, err
+			return
 		}
 	}
 
 	err = utils.VerifyPassword(user.Password, loginRequestDto.Password)
 	if err != nil {
-		return accessToken, refreshToken, &errors.LoginOrPasswordDoNotMatchError{
+		return access, refresh, &errors.LoginOrPasswordDoNotMatchError{
 			Message: "login or password do not match",
 		}
 	}
 
-	accessToken, err = utils.GenerateAccessJWT(user)
-	refreshToken, err = utils.GenerateRefreshJWT(user.ID.Hex())
+	access, refresh, err = s.generateTokens(user)
 	if err != nil {
-		return accessToken, refreshToken, err
+		return
 	}
 
 	_, err = s.tokenRepo.SaveRefreshToken(domain.RefreshToken{
 		User:  user.ID,
-		Token: refreshToken,
+		Token: refresh,
 	})
-	if err != nil {
-		return accessToken, refreshToken, err
-	}
-	return accessToken, refreshToken, nil
+	return
 }
 
-func (s *AuthService) Refresh(refreshRequestDto dto.RefreshRequestDto) (accessToken string, refreshToken string, err error) {
-	token, err := s.tokenRepo.GetRefreshToken(refreshRequestDto.RefreshToken)
+func (s *AuthService) Refresh(oldRefreshToken string) (access string, refresh string, err error) {
+	token, err := s.tokenRepo.GetRefreshToken(oldRefreshToken)
 	if err != nil {
-		return accessToken, refreshToken, err
+		return
 	}
 
 	user, _ := s.userRepo.GetUserByID(token.User.Hex())
 
-	accessToken, err = utils.GenerateAccessJWT(user)
-	refreshToken, err = utils.GenerateRefreshJWT(user.ID.Hex())
+	access, refresh, err = s.generateTokens(user)
 	if err != nil {
-		return accessToken, refreshToken, err
+		return
 	}
 
-	_, err = s.tokenRepo.UpdateRefreshToken(token.Token, refreshToken)
-	if err != nil {
-		return accessToken, refreshToken, err
-	}
-	return accessToken, refreshToken, nil
+	_, err = s.tokenRepo.UpdateRefreshToken(token.Token, refresh)
+	return
 }
 
-func (s *AuthService) Logout(logoutRequestDto dto.LogoutRequestDto) {
-	_ = s.tokenRepo.DeleteRefreshToken(logoutRequestDto.RefreshToken)
+func (s *AuthService) generateTokens(user domain.User) (accessToken string, refreshToken string, err error) {
+	accessToken, err = utils.GenerateAccessJWT(user)
+	refreshToken, err = utils.GenerateRefreshJWT(user.ID.Hex())
+	return
+}
+
+func (s *AuthService) Logout(refreshToken string) {
+	_ = s.tokenRepo.DeleteRefreshToken(refreshToken)
 }

@@ -1,6 +1,8 @@
-# Speed Typing auth service on Golang
+# Speed Typing
 
-speed typing auth service written on golang with MongoDB and gin framework
+## Auth Service on Golang
 
-swagger url: [http://localhost:8090/swagger-ui/index.html](http://localhost:8090/swagger-ui/index.html)
+Auth service written on Golang with MongoDB and Gin framework
+
+Swagger URL: [http://localhost:8090/swagger-ui/index.html](http://localhost:8090/swagger-ui/index.html)
 

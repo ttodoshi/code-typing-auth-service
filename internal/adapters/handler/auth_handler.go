@@ -37,8 +37,9 @@ func NewAuthHandler(svc ports.AuthService, log logging.Logger) *AuthHandler {
 func (h *AuthHandler) Register(c *gin.Context) {
 	h.log.Debug("received register request")
 
+	sessionCookie, err := c.Cookie("SESSION")
 	var registerRequestDto dto.RegisterRequestDto
-	if err := c.ShouldBindJSON(&registerRequestDto); err != nil {
+	if err = c.ShouldBindJSON(&registerRequestDto); err != nil {
 		err = c.Error(&errors.BodyMappingError{
 			Message: "error in request body",
 		})
@@ -46,7 +47,11 @@ func (h *AuthHandler) Register(c *gin.Context) {
 		return
 	}
 
-	access, refresh, err := h.svc.Register(registerRequestDto)
+	access, refresh, err := h.svc.Register(registerRequestDto, sessionCookie)
+	if err != nil {
+		err = c.Error(err)
+		return
+	}
 
 	refreshTokenExp, err := strconv.Atoi(os.Getenv("REFRESH_TOKEN_EXP"))
 	if err != nil {
@@ -77,8 +82,9 @@ func (h *AuthHandler) Register(c *gin.Context) {
 func (h *AuthHandler) Login(c *gin.Context) {
 	h.log.Debug("received login request")
 
+	sessionCookie, err := c.Cookie("SESSION")
 	var loginRequestDto dto.LoginRequestDto
-	if err := c.ShouldBindJSON(&loginRequestDto); err != nil {
+	if err = c.ShouldBindJSON(&loginRequestDto); err != nil {
 		err = c.Error(&errors.BodyMappingError{
 			Message: "error in request body",
 		})
@@ -86,7 +92,11 @@ func (h *AuthHandler) Login(c *gin.Context) {
 		return
 	}
 
-	access, refresh, err := h.svc.Login(loginRequestDto)
+	access, refresh, err := h.svc.Login(loginRequestDto, sessionCookie)
+	if err != nil {
+		err = c.Error(err)
+		return
+	}
 
 	refreshTokenExp, err := strconv.Atoi(os.Getenv("REFRESH_TOKEN_EXP"))
 	if err != nil {
@@ -127,6 +137,10 @@ func (h *AuthHandler) Refresh(c *gin.Context) {
 	}
 
 	access, refresh, err := h.svc.Refresh(refreshTokenCookie)
+	if err != nil {
+		err = c.Error(err)
+		return
+	}
 
 	refreshTokenExp, err := strconv.Atoi(os.Getenv("REFRESH_TOKEN_EXP"))
 	if err != nil {

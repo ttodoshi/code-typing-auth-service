@@ -7,7 +7,7 @@ import (
 	"strconv"
 )
 
-func InitConsul() {
+func InitServiceDiscovery() {
 	log.Print("initializing consul client")
 
 	consulClient, err := api.NewClient(
@@ -35,4 +35,5 @@ func InitConsul() {
 	if err != nil {
 		log.Fatalf("error while service registration due to error '%s'", err)
 	}
+	log.Print("service registered in consul")
 }

@@ -6,8 +6,8 @@ import (
 )
 
 type AuthService interface {
-	Register(registerRequestDto dto.RegisterRequestDto) (access string, refresh string, err error)
-	Login(loginRequestDto dto.LoginRequestDto) (access string, refresh string, err error)
+	Register(registerRequestDto dto.RegisterRequestDto, session string) (access string, refresh string, err error)
+	Login(loginRequestDto dto.LoginRequestDto, session string) (access string, refresh string, err error)
 	Refresh(oldRefreshToken string) (access string, refresh string, err error)
 	Logout(refreshToken string)
 }
@@ -26,4 +26,8 @@ type UserRepository interface {
 	GetUserByNickname(nickname string) (domain.User, error)
 	GetUserByEmail(email string) (domain.User, error)
 	SaveUser(user domain.User) (domain.User, error)
+}
+
+type ResultsMigrator interface {
+	MigrateSessionResults(session string, userID string)
 }

@@ -9,8 +9,10 @@ import (
 	"os"
 	_ "speed-typing-auth-service/docs"
 	"speed-typing-auth-service/internal/adapters/handler"
+	"speed-typing-auth-service/internal/adapters/mq/rabbitmq"
 	"speed-typing-auth-service/internal/adapters/repository/mongodb"
 	"speed-typing-auth-service/internal/core/servises"
+	"speed-typing-auth-service/pkg/broker"
 	"speed-typing-auth-service/pkg/discovery"
 	"speed-typing-auth-service/pkg/env"
 	"speed-typing-auth-service/pkg/logging"
@@ -32,19 +34,28 @@ func init() {
 		gin.SetMode(gin.ReleaseMode)
 	}
 	log = logging.GetLogger()
-	discovery.InitConsul()
+	discovery.InitServiceDiscovery()
 	err := mgm.SetDefaultConfig(nil, "auth", options.Client().ApplyURI(os.Getenv("DB_URL")))
 	if err != nil {
 		log.Fatal("failed connect to database")
 	}
-
-	refreshTokenRepository := mongodb.NewRefreshTokenRepository()
-	userRepository := mongodb.NewUserRepository()
-	authService := servises.NewAuthService(userRepository, refreshTokenRepository, log)
-	authHandler = handler.NewAuthHandler(authService, log)
 }
 
 func main() {
+	refreshTokenRepository := mongodb.NewRefreshTokenRepository()
+	userRepository := mongodb.NewUserRepository()
+
+	channel := broker.InitMessageBroker()
+	defer broker.Close()
+
+	resultsMigrator := rabbitmq.NewResultsMigrator(channel, log)
+	authService := servises.NewAuthService(
+		userRepository, refreshTokenRepository,
+		resultsMigrator,
+		log,
+	)
+	authHandler = handler.NewAuthHandler(authService, log)
+
 	initRoutes()
 }
 

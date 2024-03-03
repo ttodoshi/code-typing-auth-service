@@ -11,16 +11,22 @@ import (
 )
 
 type AuthService struct {
-	userRepo  ports.UserRepository
-	tokenRepo ports.RefreshTokenRepository
-	log       logging.Logger
+	userRepo        ports.UserRepository
+	tokenRepo       ports.RefreshTokenRepository
+	resultsMigrator ports.ResultsMigrator
+	log             logging.Logger
 }
 
-func NewAuthService(userRepo ports.UserRepository, tokenRepo ports.RefreshTokenRepository, log logging.Logger) ports.AuthService {
-	return &AuthService{userRepo: userRepo, tokenRepo: tokenRepo, log: log}
+func NewAuthService(userRepo ports.UserRepository, tokenRepo ports.RefreshTokenRepository, resultsMigrator ports.ResultsMigrator, log logging.Logger) ports.AuthService {
+	return &AuthService{
+		userRepo:        userRepo,
+		tokenRepo:       tokenRepo,
+		resultsMigrator: resultsMigrator,
+		log:             log,
+	}
 }
 
-func (s *AuthService) Register(registerRequestDto dto.RegisterRequestDto) (access string, refresh string, err error) {
+func (s *AuthService) Register(registerRequestDto dto.RegisterRequestDto, session string) (access string, refresh string, err error) {
 	var user domain.User
 
 	registerRequestDto.Password, err = utils.HashPassword(registerRequestDto.Password)
@@ -39,6 +45,7 @@ func (s *AuthService) Register(registerRequestDto dto.RegisterRequestDto) (acces
 		return
 	}
 
+	s.resultsMigrator.MigrateSessionResults(session, user.ID.Hex())
 	_, err = s.tokenRepo.SaveRefreshToken(domain.RefreshToken{
 		User:  user.ID,
 		Token: refresh,
@@ -46,7 +53,7 @@ func (s *AuthService) Register(registerRequestDto dto.RegisterRequestDto) (acces
 	return
 }
 
-func (s *AuthService) Login(loginRequestDto dto.LoginRequestDto) (access string, refresh string, err error) {
+func (s *AuthService) Login(loginRequestDto dto.LoginRequestDto, session string) (access string, refresh string, err error) {
 	var user domain.User
 	user, err = s.userRepo.GetUserByNickname(loginRequestDto.Login)
 	if err != nil {
@@ -68,6 +75,7 @@ func (s *AuthService) Login(loginRequestDto dto.LoginRequestDto) (access string,
 		return
 	}
 
+	s.resultsMigrator.MigrateSessionResults(session, user.ID.Hex())
 	_, err = s.tokenRepo.SaveRefreshToken(domain.RefreshToken{
 		User:  user.ID,
 		Token: refresh,

@@ -181,6 +181,6 @@ func (h *AuthHandler) Logout(c *gin.Context) {
 
 	h.svc.Logout(refreshTokenCookie)
 
-	c.SetCookie("refreshToken", "", 0, "/", os.Getenv("COOKIE_HOST"), false, true)
+	c.SetCookie("refreshToken", "", -1, "/", os.Getenv("COOKIE_HOST"), false, true)
 	c.Status(204)
 }

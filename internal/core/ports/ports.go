@@ -28,6 +28,7 @@ type UserRepository interface {
 	SaveUser(user domain.User) (domain.User, error)
 }
 
+//go:generate go run github.com/vektra/mockery/v2@v2.39.1 --name=ResultsMigrator
 type ResultsMigrator interface {
 	MigrateSessionResults(session string, userID string)
 }

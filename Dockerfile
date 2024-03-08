@@ -1,5 +1,7 @@
 FROM golang:1.21-alpine AS builder
 
+RUN apk add --no-cache make
+
 WORKDIR /usr/local/src/app
 
 COPY go.mod go.sum ./
@@ -7,14 +9,13 @@ COPY internal internal
 COPY pkg pkg
 COPY cmd cmd
 COPY docs docs
+COPY Makefile ./
 
-RUN go mod tidy
-
-RUN go build -o ./bin/app ./cmd/main/main.go
+RUN make build
 
 FROM alpine:latest AS final
 
-WORKDIR /usr/local/src/app
+WORKDIR /usr/local/src/app/bin
 
 COPY --from=builder /usr/local/src/app/bin/app .
 

@@ -1,21 +1,20 @@
 package main
 
 import (
+	_ "code-typing-auth-service/docs"
+	"code-typing-auth-service/internal/adapters/handler"
+	"code-typing-auth-service/internal/adapters/mq/rabbitmq"
+	"code-typing-auth-service/internal/adapters/repository/mongodb"
+	"code-typing-auth-service/internal/core/servises"
+	"code-typing-auth-service/pkg/broker"
+	"code-typing-auth-service/pkg/discovery"
+	"code-typing-auth-service/pkg/env"
+	"code-typing-auth-service/pkg/logging"
 	"github.com/gin-gonic/gin"
 	"github.com/kamva/mgm/v3"
-	swaggerFiles "github.com/swaggo/files"
-	ginSwagger "github.com/swaggo/gin-swagger"
+	"github.com/streadway/amqp"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"os"
-	_ "speed-typing-auth-service/docs"
-	"speed-typing-auth-service/internal/adapters/handler"
-	"speed-typing-auth-service/internal/adapters/mq/rabbitmq"
-	"speed-typing-auth-service/internal/adapters/repository/mongodb"
-	"speed-typing-auth-service/internal/core/servises"
-	"speed-typing-auth-service/pkg/broker"
-	"speed-typing-auth-service/pkg/discovery"
-	"speed-typing-auth-service/pkg/env"
-	"speed-typing-auth-service/pkg/logging"
 )
 
 const (
@@ -23,30 +22,44 @@ const (
 	Prod = "prod"
 )
 
-var (
-	authHandler *handler.AuthHandler
-	log         logging.Logger
-)
-
 func init() {
 	env.LoadEnvVariables()
 	if os.Getenv("PROFILE") == Prod {
 		gin.SetMode(gin.ReleaseMode)
 	}
-	log = logging.GetLogger()
 	discovery.InitServiceDiscovery()
+}
+
+//	@title		Auth Service API
+//	@version	1.0
+
+// @host		localhost:8090
+// @BasePath	/api/v1
+func main() {
+	log := logging.GetLogger()
+
+	initDatabase(log)
+
+	channel := broker.InitMessageBroker()
+	defer broker.Close()
+
+	r := gin.Default()
+	router := initRouter(log, channel)
+	router.InitRoutes(r)
+
+	log.Fatalf("error while running server due to: %s", r.Run())
+}
+
+func initDatabase(log logging.Logger) {
 	err := mgm.SetDefaultConfig(nil, "auth", options.Client().ApplyURI(os.Getenv("DB_URL")))
 	if err != nil {
 		log.Fatal("failed connect to database")
 	}
 }
 
-func main() {
+func initRouter(log logging.Logger, channel *amqp.Channel) *handler.Router {
 	refreshTokenRepository := mongodb.NewRefreshTokenRepository()
 	userRepository := mongodb.NewUserRepository()
-
-	channel := broker.InitMessageBroker()
-	defer broker.Close()
 
 	resultsMigrator := rabbitmq.NewResultsMigrator(channel, log)
 	authService := servises.NewAuthService(
@@ -54,45 +67,10 @@ func main() {
 		resultsMigrator,
 		log,
 	)
-	authHandler = handler.NewAuthHandler(authService, log)
-
-	initRoutes()
-}
-
-//	@title						Auth Service API
-//	@version					1.0
-
-//	@host						localhost:8090
-//	@BasePath					/api/v1
-
-// @externalDocs.description	OpenAPI
-func initRoutes() {
-	r := gin.Default()
-
-	log.Info("initializing error handling middleware")
-	r.Use(handler.ErrorHandlerMiddleware())
-
-	log.Info("initializing handlers")
-
-	// swagger
-	r.GET("/swagger-ui/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
-
-	apiGroup := r.Group("/api")
-
-	v1ApiGroup := apiGroup.Group("/v1")
-
-	v1TextsGroup := v1ApiGroup.Group("/auth")
-	{
-		v1TextsGroup.POST("/registration", authHandler.Register)
-		v1TextsGroup.POST("/login", authHandler.Login)
-		v1TextsGroup.GET("/refresh", authHandler.Refresh)
-		v1TextsGroup.DELETE("/logout", authHandler.Logout)
-	}
-
-	log.Infof("starting server on port :%s", os.Getenv("PORT"))
-
-	err := r.Run()
-	if err != nil {
-		log.Fatal("error while running server")
-	}
+	return handler.NewRouter(
+		log,
+		handler.NewAuthHandler(
+			authService, log,
+		),
+	)
 }

@@ -1,4 +1,4 @@
-module speed-typing-auth-service
+module code-typing-auth-service
 
 go 1.21
 

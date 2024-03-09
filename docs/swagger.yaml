@@ -32,8 +32,6 @@ definitions:
     - nickname
     - password
     type: object
-externalDocs:
-  description: OpenAPI
 host: localhost:8090
 info:
   contact: {}

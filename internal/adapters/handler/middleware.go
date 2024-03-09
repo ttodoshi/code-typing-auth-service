@@ -1,9 +1,9 @@
 package handler
 
 import (
+	"code-typing-auth-service/internal/core/errors"
 	"github.com/gin-gonic/gin"
 	"net/http"
-	"speed-typing-auth-service/internal/core/errors"
 	"time"
 )
 

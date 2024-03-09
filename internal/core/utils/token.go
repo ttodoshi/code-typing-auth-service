@@ -1,11 +1,11 @@
 package utils
 
 import (
+	"code-typing-auth-service/internal/core/domain"
+	"code-typing-auth-service/internal/core/errors"
 	"fmt"
 	"github.com/golang-jwt/jwt/v5"
 	"os"
-	"speed-typing-auth-service/internal/core/domain"
-	"speed-typing-auth-service/internal/core/errors"
 	"strconv"
 	"time"
 )

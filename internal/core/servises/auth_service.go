@@ -1,13 +1,13 @@
 package servises
 
 import (
+	"code-typing-auth-service/internal/adapters/dto"
+	"code-typing-auth-service/internal/core/domain"
+	"code-typing-auth-service/internal/core/errors"
+	"code-typing-auth-service/internal/core/ports"
+	"code-typing-auth-service/internal/core/utils"
+	"code-typing-auth-service/pkg/logging"
 	"github.com/jinzhu/copier"
-	"speed-typing-auth-service/internal/adapters/dto"
-	"speed-typing-auth-service/internal/core/domain"
-	"speed-typing-auth-service/internal/core/errors"
-	"speed-typing-auth-service/internal/core/ports"
-	"speed-typing-auth-service/internal/core/utils"
-	"speed-typing-auth-service/pkg/logging"
 )
 
 type AuthService struct {

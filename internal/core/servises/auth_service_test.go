@@ -1,16 +1,16 @@
 package servises
 
 import (
+	"code-typing-auth-service/internal/adapters/dto"
+	"code-typing-auth-service/internal/core/domain"
+	"code-typing-auth-service/internal/core/errors"
+	"code-typing-auth-service/internal/core/ports/mocks"
+	"code-typing-auth-service/internal/core/utils"
+	"code-typing-auth-service/pkg/logging/nop"
 	"github.com/brianvoe/gofakeit/v6"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"os"
-	"speed-typing-auth-service/internal/adapters/dto"
-	"speed-typing-auth-service/internal/core/domain"
-	"speed-typing-auth-service/internal/core/errors"
-	"speed-typing-auth-service/internal/core/ports/mocks"
-	"speed-typing-auth-service/internal/core/utils"
-	"speed-typing-auth-service/pkg/logging/nop"
 	"testing"
 )
 

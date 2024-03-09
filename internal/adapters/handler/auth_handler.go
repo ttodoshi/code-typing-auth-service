@@ -1,13 +1,13 @@
 package handler
 
 import (
+	"code-typing-auth-service/internal/adapters/dto"
+	"code-typing-auth-service/internal/core/errors"
+	"code-typing-auth-service/internal/core/ports"
+	"code-typing-auth-service/pkg/logging"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"os"
-	"speed-typing-auth-service/internal/adapters/dto"
-	"speed-typing-auth-service/internal/core/errors"
-	"speed-typing-auth-service/internal/core/ports"
-	"speed-typing-auth-service/pkg/logging"
 	"strconv"
 )
 

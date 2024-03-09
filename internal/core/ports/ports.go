@@ -1,8 +1,8 @@
 package ports
 
 import (
-	"speed-typing-auth-service/internal/adapters/dto"
-	"speed-typing-auth-service/internal/core/domain"
+	"code-typing-auth-service/internal/adapters/dto"
+	"code-typing-auth-service/internal/core/domain"
 )
 
 type AuthService interface {

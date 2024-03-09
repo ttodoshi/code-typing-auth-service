@@ -1,7 +1,7 @@
 package nop
 
 import (
-	"speed-typing-auth-service/pkg/logging"
+	"code-typing-auth-service/pkg/logging"
 )
 
 var l *NoOperationLogger

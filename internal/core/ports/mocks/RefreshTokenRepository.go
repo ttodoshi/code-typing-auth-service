@@ -3,7 +3,7 @@
 package mocks
 
 import (
-	domain "speed-typing-auth-service/internal/core/domain"
+	domain "code-typing-auth-service/internal/core/domain"
 
 	mock "github.com/stretchr/testify/mock"
 )

@@ -1,4 +1,4 @@
-# Speed Typing
+# Code Typing
 
 ## Auth Service on Golang
 
@@ -15,5 +15,5 @@ make run
 ### Build docker container
 
 ```shell
-docker build . -t ghcr.io/ttodoshi/speed-typing-auth-service:latest
+docker build . -t ghcr.io/ttodoshi/code-typing-auth-service:latest
 ```

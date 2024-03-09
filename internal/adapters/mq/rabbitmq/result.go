@@ -1,9 +1,9 @@
 package rabbitmq
 
 import (
+	"code-typing-auth-service/pkg/logging"
 	"encoding/json"
 	"github.com/streadway/amqp"
-	"speed-typing-auth-service/pkg/logging"
 )
 
 const queueName = "results"

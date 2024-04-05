@@ -7,6 +7,7 @@ import (
 	"code-typing-auth-service/internal/core/ports"
 	"code-typing-auth-service/internal/core/utils"
 	"code-typing-auth-service/pkg/logging"
+	"code-typing-auth-service/pkg/password"
 	"github.com/jinzhu/copier"
 )
 
@@ -29,7 +30,7 @@ func NewAuthService(userRepo ports.UserRepository, tokenRepo ports.RefreshTokenR
 func (s *AuthService) Register(registerRequestDto dto.RegisterRequestDto, session string) (access string, refresh string, err error) {
 	var user domain.User
 
-	registerRequestDto.Password, err = utils.HashPassword(registerRequestDto.Password)
+	registerRequestDto.Password, err = password.HashPassword(registerRequestDto.Password)
 	if err != nil {
 		return
 	}
@@ -63,7 +64,7 @@ func (s *AuthService) Login(loginRequestDto dto.LoginRequestDto, session string)
 		}
 	}
 
-	err = utils.VerifyPassword(user.Password, loginRequestDto.Password)
+	err = password.VerifyPassword(user.Password, loginRequestDto.Password)
 	if err != nil {
 		return access, refresh, &errors.LoginOrPasswordDoNotMatchError{
 			Message: "login or password do not match",

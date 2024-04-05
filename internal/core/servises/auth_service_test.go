@@ -7,6 +7,7 @@ import (
 	"code-typing-auth-service/internal/core/ports/mocks"
 	"code-typing-auth-service/internal/core/utils"
 	"code-typing-auth-service/pkg/logging/nop"
+	. "code-typing-auth-service/pkg/password"
 	"github.com/brianvoe/gofakeit/v6"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -94,7 +95,7 @@ func TestLogin(t *testing.T) {
 	resultsMigrator := new(mocks.ResultsMigrator)
 
 	password := gofakeit.Password(true, true, true, true, false, 8)
-	hashPassword, err := utils.HashPassword(password)
+	hashPassword, err := HashPassword(password)
 	user := domain.User{
 		Nickname: gofakeit.Username(),
 		Email:    gofakeit.Email(),
@@ -193,7 +194,7 @@ func TestRefresh(t *testing.T) {
 	resultsMigrator := new(mocks.ResultsMigrator)
 
 	password := gofakeit.Password(true, true, true, true, false, 8)
-	hashPassword, err := utils.HashPassword(password)
+	hashPassword, err := HashPassword(password)
 	user := domain.User{
 		Nickname: gofakeit.Username(),
 		Email:    gofakeit.Email(),

@@ -2,8 +2,10 @@ package rabbitmq
 
 import (
 	"code-typing-auth-service/pkg/logging"
+	"context"
 	"encoding/json"
-	"github.com/streadway/amqp"
+	amqp "github.com/rabbitmq/amqp091-go"
+	"time"
 )
 
 const queueName = "results"
@@ -36,7 +38,14 @@ func (r *ResultsMigrator) MigrateSessionResults(session string, userID string) {
 			r.log.Warnf(`results not migrated due to error: %v`, err)
 			return
 		}
-		err = r.channel.Publish(
+
+		ctx, cancel := context.WithTimeout(
+			context.Background(), 5*time.Second,
+		)
+		defer cancel()
+
+		err = r.channel.PublishWithContext(
+			ctx,
 			"",
 			queueName,
 			false,

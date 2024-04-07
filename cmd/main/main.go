@@ -12,7 +12,7 @@ import (
 	"code-typing-auth-service/pkg/logging"
 	"github.com/gin-gonic/gin"
 	"github.com/kamva/mgm/v3"
-	"github.com/streadway/amqp"
+	amqp "github.com/rabbitmq/amqp091-go"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"os"
 )

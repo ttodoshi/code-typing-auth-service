@@ -1,11 +1,11 @@
 package servises
 
 import (
-	"code-typing-auth-service/internal/adapters/dto"
 	"code-typing-auth-service/internal/core/domain"
-	"code-typing-auth-service/internal/core/errors"
 	"code-typing-auth-service/internal/core/ports"
-	"code-typing-auth-service/internal/core/utils"
+	"code-typing-auth-service/internal/core/ports/dto"
+	"code-typing-auth-service/internal/core/ports/errors"
+	"code-typing-auth-service/pkg/jwt"
 	"code-typing-auth-service/pkg/logging"
 	"code-typing-auth-service/pkg/password"
 	"github.com/jinzhu/copier"
@@ -102,8 +102,14 @@ func (s *AuthService) Refresh(oldRefreshToken string) (access string, refresh st
 }
 
 func (s *AuthService) generateTokens(user domain.User) (accessToken string, refreshToken string, err error) {
-	accessToken, err = utils.GenerateAccessJWT(user)
-	refreshToken, err = utils.GenerateRefreshJWT(user.ID.Hex())
+	accessToken, err = jwt.GenerateAccessJWT(
+		user.ID.Hex(),
+		jwt.Claim{
+			Name:  "nickname",
+			Value: user.Nickname,
+		},
+	)
+	refreshToken, err = jwt.GenerateRefreshJWT(user.ID.Hex())
 	return
 }
 

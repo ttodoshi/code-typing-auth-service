@@ -1,11 +1,11 @@
 package servises
 
 import (
-	"code-typing-auth-service/internal/adapters/dto"
 	"code-typing-auth-service/internal/core/domain"
-	"code-typing-auth-service/internal/core/errors"
+	"code-typing-auth-service/internal/core/ports/dto"
+	"code-typing-auth-service/internal/core/ports/errors"
 	"code-typing-auth-service/internal/core/ports/mocks"
-	"code-typing-auth-service/internal/core/utils"
+	"code-typing-auth-service/pkg/jwt"
 	"code-typing-auth-service/pkg/logging/nop"
 	. "code-typing-auth-service/pkg/password"
 	"github.com/brianvoe/gofakeit/v6"
@@ -201,7 +201,7 @@ func TestRefresh(t *testing.T) {
 		Password: hashPassword,
 	}
 
-	refresh, err := utils.GenerateRefreshJWT(user.ID.Hex())
+	refresh, err := jwt.GenerateRefreshJWT(user.ID.Hex())
 	tokenRepo.
 		On("GetRefreshToken", refresh).
 		Return(domain.RefreshToken{
@@ -245,7 +245,7 @@ func TestLogout(t *testing.T) {
 	tokenRepo := new(mocks.RefreshTokenRepository)
 	resultsMigrator := new(mocks.ResultsMigrator)
 
-	refresh, err := utils.GenerateRefreshJWT(gofakeit.UUID())
+	refresh, err := jwt.GenerateRefreshJWT(gofakeit.UUID())
 	tokenRepo.
 		On("DeleteRefreshToken", refresh).
 		Return(nil)

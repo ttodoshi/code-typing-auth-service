@@ -2,7 +2,8 @@ package main
 
 import (
 	_ "code-typing-auth-service/docs"
-	"code-typing-auth-service/internal/adapters/handler"
+	"code-typing-auth-service/internal/adapters/handler/http"
+	"code-typing-auth-service/internal/adapters/handler/http/api"
 	"code-typing-auth-service/internal/adapters/mq/rabbitmq"
 	"code-typing-auth-service/internal/adapters/repository/mongodb"
 	"code-typing-auth-service/internal/core/domain"
@@ -79,7 +80,7 @@ func initDatabase(log logging.Logger) {
 	}
 }
 
-func initRouter(log logging.Logger, channel *amqp.Channel) *handler.Router {
+func initRouter(log logging.Logger, channel *amqp.Channel) *http.Router {
 	refreshTokenRepository := mongodb.NewRefreshTokenRepository()
 	userRepository := mongodb.NewUserRepository()
 
@@ -89,9 +90,9 @@ func initRouter(log logging.Logger, channel *amqp.Channel) *handler.Router {
 		resultsMigrator,
 		log,
 	)
-	return handler.NewRouter(
+	return http.NewRouter(
 		log,
-		handler.NewAuthHandler(
+		api.NewAuthHandler(
 			authService, log,
 		),
 	)

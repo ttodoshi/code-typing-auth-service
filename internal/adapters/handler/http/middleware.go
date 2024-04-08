@@ -1,7 +1,7 @@
-package handler
+package http
 
 import (
-	"code-typing-auth-service/internal/core/errors"
+	"code-typing-auth-service/internal/core/ports/errors"
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"time"

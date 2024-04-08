@@ -1,9 +1,9 @@
-package handler
+package api
 
 import (
-	"code-typing-auth-service/internal/adapters/dto"
-	"code-typing-auth-service/internal/core/errors"
 	"code-typing-auth-service/internal/core/ports"
+	"code-typing-auth-service/internal/core/ports/dto"
+	"code-typing-auth-service/internal/core/ports/errors"
 	"code-typing-auth-service/pkg/logging"
 	"fmt"
 	"github.com/gin-gonic/gin"

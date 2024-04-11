@@ -4,11 +4,14 @@ import (
 	"code-typing-auth-service/internal/core/ports"
 	"code-typing-auth-service/internal/core/ports/dto"
 	"code-typing-auth-service/internal/core/ports/errors"
+	"code-typing-auth-service/pkg/jwt"
 	"code-typing-auth-service/pkg/logging"
-	"fmt"
 	"github.com/gin-gonic/gin"
 	"os"
-	"strconv"
+)
+
+var (
+	cookieHost = os.Getenv("COOKIE_HOST")
 )
 
 type AuthHandler struct {
@@ -53,15 +56,7 @@ func (h *AuthHandler) Register(c *gin.Context) {
 		return
 	}
 
-	refreshTokenExp, err := strconv.Atoi(os.Getenv("REFRESH_TOKEN_EXP"))
-	if err != nil {
-		err = c.Error(&errors.TokenGenerationError{
-			Message: fmt.Sprintf("refresh token generation error due to: %s", err.Error()),
-		})
-		return
-	}
-
-	c.SetCookie("refreshToken", refresh, refreshTokenExp, "/", os.Getenv("COOKIE_HOST"), false, true)
+	c.SetCookie("refreshToken", refresh, jwt.RefreshTokenExp, "/", cookieHost, false, true)
 	c.JSON(201, dto.AuthResponseDto{
 		Access:  access,
 		Refresh: refresh,
@@ -98,15 +93,7 @@ func (h *AuthHandler) Login(c *gin.Context) {
 		return
 	}
 
-	refreshTokenExp, err := strconv.Atoi(os.Getenv("REFRESH_TOKEN_EXP"))
-	if err != nil {
-		err = c.Error(&errors.TokenGenerationError{
-			Message: fmt.Sprintf("refresh token generation error due to: %s", err.Error()),
-		})
-		return
-	}
-
-	c.SetCookie("refreshToken", refresh, refreshTokenExp, "/", os.Getenv("COOKIE_HOST"), false, true)
+	c.SetCookie("refreshToken", refresh, jwt.RefreshTokenExp, "/", cookieHost, false, true)
 	c.JSON(200, dto.AuthResponseDto{
 		Access:  access,
 		Refresh: refresh,
@@ -142,15 +129,7 @@ func (h *AuthHandler) Refresh(c *gin.Context) {
 		return
 	}
 
-	refreshTokenExp, err := strconv.Atoi(os.Getenv("REFRESH_TOKEN_EXP"))
-	if err != nil {
-		err = c.Error(&errors.TokenGenerationError{
-			Message: fmt.Sprintf("refresh token generation error due to: %s", err.Error()),
-		})
-		return
-	}
-
-	c.SetCookie("refreshToken", refresh, refreshTokenExp, "/", os.Getenv("COOKIE_HOST"), false, true)
+	c.SetCookie("refreshToken", refresh, jwt.RefreshTokenExp, "/", cookieHost, false, true)
 	c.JSON(200, dto.AuthResponseDto{
 		Access:  access,
 		Refresh: refresh,
@@ -181,6 +160,6 @@ func (h *AuthHandler) Logout(c *gin.Context) {
 
 	h.svc.Logout(refreshTokenCookie)
 
-	c.SetCookie("refreshToken", "", -1, "/", os.Getenv("COOKIE_HOST"), false, true)
+	c.SetCookie("refreshToken", "", -1, "/", cookieHost, false, true)
 	c.Status(204)
 }

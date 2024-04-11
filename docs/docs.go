@@ -22,7 +22,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "produces": [
-                    "application/json"
+                    "text/plain"
                 ],
                 "tags": [
                     "auth"
@@ -43,12 +43,12 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/dto.AuthResponseDto"
+                            "type": "string"
                         },
                         "headers": {
-                            "refreshToken": {
+                            "Set-Cookie": {
                                 "type": "string",
-                                "description": "token"
+                                "description": "refreshToken"
                             }
                         }
                     }
@@ -71,15 +71,22 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Refresh token",
-                        "name": "refreshToken",
+                        "default": "refreshToken=",
+                        "description": "refreshToken",
+                        "name": "Cookie",
                         "in": "header",
                         "required": true
                     }
                 ],
                 "responses": {
                     "204": {
-                        "description": "No Content"
+                        "description": "No Content",
+                        "headers": {
+                            "Set-Cookie": {
+                                "type": "string",
+                                "description": "refreshToken"
+                            }
+                        }
                     }
                 }
             }
@@ -91,7 +98,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "produces": [
-                    "application/json"
+                    "text/plain"
                 ],
                 "tags": [
                     "auth"
@@ -100,8 +107,9 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Refresh token",
-                        "name": "refreshToken",
+                        "default": "refreshToken=",
+                        "description": "refreshToken",
+                        "name": "Cookie",
                         "in": "header",
                         "required": true
                     }
@@ -110,12 +118,12 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/dto.AuthResponseDto"
+                            "type": "string"
                         },
                         "headers": {
-                            "refreshToken": {
+                            "Set-Cookie": {
                                 "type": "string",
-                                "description": "token"
+                                "description": "refreshToken"
                             }
                         }
                     }
@@ -129,7 +137,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "produces": [
-                    "application/json"
+                    "text/plain"
                 ],
                 "tags": [
                     "auth"
@@ -150,7 +158,7 @@ const docTemplate = `{
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/dto.AuthResponseDto"
+                            "type": "string"
                         }
                     }
                 }
@@ -158,17 +166,6 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "dto.AuthResponseDto": {
-            "type": "object",
-            "properties": {
-                "access": {
-                    "type": "string"
-                },
-                "refresh": {
-                    "type": "string"
-                }
-            }
-        },
         "dto.LoginRequestDto": {
             "type": "object",
             "required": [

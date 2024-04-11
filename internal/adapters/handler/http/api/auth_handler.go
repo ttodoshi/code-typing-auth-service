@@ -32,10 +32,10 @@ func NewAuthHandler(svc ports.AuthService, log logging.Logger) *AuthHandler {
 //	@Description	Register new user
 //	@Tags			auth
 //	@Accept			json
-//	@Produce		json
+//	@Produce		plain
 //	@Param			request	body		dto.RegisterRequestDto	true	"Register request"
-//	@Success		201		{object}	dto.AuthResponseDto
-//	@Header			200		{string}	refreshToken	"token"
+//	@Success		201		{object}	string
+//	@Header			200		{string}	Set-Cookie	"refreshToken"
 //	@Router			/auth/registration [post]
 func (h *AuthHandler) Register(c *gin.Context) {
 	h.log.Debug("received register request")
@@ -57,10 +57,7 @@ func (h *AuthHandler) Register(c *gin.Context) {
 	}
 
 	c.SetCookie("refreshToken", refresh, jwt.RefreshTokenExp, "/", cookieHost, false, true)
-	c.JSON(201, dto.AuthResponseDto{
-		Access:  access,
-		Refresh: refresh,
-	})
+	c.Data(201, "text/html; charset=utf-8", []byte(access))
 }
 
 // Login godoc
@@ -69,10 +66,10 @@ func (h *AuthHandler) Register(c *gin.Context) {
 //	@Description	Login
 //	@Tags			auth
 //	@Accept			json
-//	@Produce		json
+//	@Produce		plain
 //	@Param			request	body		dto.LoginRequestDto	true	"Login request"
-//	@Success		200		{object}	dto.AuthResponseDto
-//	@Header			200		{string}	refreshToken	"token"
+//	@Success		200		{object}	string
+//	@Header			200		{string}	Set-Cookie	"refreshToken"
 //	@Router			/auth/login [post]
 func (h *AuthHandler) Login(c *gin.Context) {
 	h.log.Debug("received login request")
@@ -94,10 +91,7 @@ func (h *AuthHandler) Login(c *gin.Context) {
 	}
 
 	c.SetCookie("refreshToken", refresh, jwt.RefreshTokenExp, "/", cookieHost, false, true)
-	c.JSON(200, dto.AuthResponseDto{
-		Access:  access,
-		Refresh: refresh,
-	})
+	c.Data(200, "text/html; charset=utf-8", []byte(access))
 }
 
 // Refresh godoc
@@ -106,10 +100,10 @@ func (h *AuthHandler) Login(c *gin.Context) {
 //	@Description	Refresh
 //	@Tags			auth
 //	@Accept			json
-//	@Produce		json
-//	@Param			refreshToken	header		string	true	"Refresh token"
-//	@Success		200				{object}	dto.AuthResponseDto
-//	@Header			200				{string}	refreshToken	"token"
+//	@Produce		plain
+//	@Param			Cookie	header		string	true	"refreshToken"	default(refreshToken=)
+//	@Success		200		{object}	string
+//	@Header			200		{string}	Set-Cookie	"refreshToken"
 //	@Router			/auth/refresh [get]
 func (h *AuthHandler) Refresh(c *gin.Context) {
 	h.log.Debug("received refresh request")
@@ -130,10 +124,7 @@ func (h *AuthHandler) Refresh(c *gin.Context) {
 	}
 
 	c.SetCookie("refreshToken", refresh, jwt.RefreshTokenExp, "/", cookieHost, false, true)
-	c.JSON(200, dto.AuthResponseDto{
-		Access:  access,
-		Refresh: refresh,
-	})
+	c.Data(200, "text/html; charset=utf-8", []byte(access))
 }
 
 // Logout godoc
@@ -143,8 +134,9 @@ func (h *AuthHandler) Refresh(c *gin.Context) {
 //	@Tags			auth
 //	@Accept			json
 //	@Produce		json
-//	@Param			refreshToken	header	string	true	"Refresh token"
+//	@Param			Cookie	header	string	true	"refreshToken"	default(refreshToken=)
 //	@Success		204
+//	@Header			204	{string}	Set-Cookie	"refreshToken"
 //	@Router			/auth/logout [delete]
 func (h *AuthHandler) Logout(c *gin.Context) {
 	h.log.Debug("received logout request")

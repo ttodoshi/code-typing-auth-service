@@ -1,12 +1,5 @@
 basePath: /api/v1
 definitions:
-  dto.AuthResponseDto:
-    properties:
-      access:
-        type: string
-      refresh:
-        type: string
-    type: object
   dto.LoginRequestDto:
     properties:
       login:
@@ -51,16 +44,16 @@ paths:
         schema:
           $ref: '#/definitions/dto.LoginRequestDto'
       produces:
-      - application/json
+      - text/plain
       responses:
         "200":
           description: OK
           headers:
-            refreshToken:
-              description: token
+            Set-Cookie:
+              description: refreshToken
               type: string
           schema:
-            $ref: '#/definitions/dto.AuthResponseDto'
+            type: string
       summary: Login
       tags:
       - auth
@@ -70,9 +63,10 @@ paths:
       - application/json
       description: Logout
       parameters:
-      - description: Refresh token
+      - default: refreshToken=
+        description: refreshToken
         in: header
-        name: refreshToken
+        name: Cookie
         required: true
         type: string
       produces:
@@ -80,6 +74,10 @@ paths:
       responses:
         "204":
           description: No Content
+          headers:
+            Set-Cookie:
+              description: refreshToken
+              type: string
       summary: Logout
       tags:
       - auth
@@ -89,22 +87,23 @@ paths:
       - application/json
       description: Refresh
       parameters:
-      - description: Refresh token
+      - default: refreshToken=
+        description: refreshToken
         in: header
-        name: refreshToken
+        name: Cookie
         required: true
         type: string
       produces:
-      - application/json
+      - text/plain
       responses:
         "200":
           description: OK
           headers:
-            refreshToken:
-              description: token
+            Set-Cookie:
+              description: refreshToken
               type: string
           schema:
-            $ref: '#/definitions/dto.AuthResponseDto'
+            type: string
       summary: Refresh
       tags:
       - auth
@@ -121,12 +120,12 @@ paths:
         schema:
           $ref: '#/definitions/dto.RegisterRequestDto'
       produces:
-      - application/json
+      - text/plain
       responses:
         "201":
           description: Created
           schema:
-            $ref: '#/definitions/dto.AuthResponseDto'
+            type: string
       summary: Register new user
       tags:
       - auth

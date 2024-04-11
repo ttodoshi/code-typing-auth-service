@@ -15,7 +15,7 @@
                     "application/json"
                 ],
                 "produces": [
-                    "application/json"
+                    "text/plain"
                 ],
                 "tags": [
                     "auth"
@@ -36,12 +36,12 @@
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/dto.AuthResponseDto"
+                            "type": "string"
                         },
                         "headers": {
-                            "refreshToken": {
+                            "Set-Cookie": {
                                 "type": "string",
-                                "description": "token"
+                                "description": "refreshToken"
                             }
                         }
                     }
@@ -64,15 +64,22 @@
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Refresh token",
-                        "name": "refreshToken",
+                        "default": "refreshToken=",
+                        "description": "refreshToken",
+                        "name": "Cookie",
                         "in": "header",
                         "required": true
                     }
                 ],
                 "responses": {
                     "204": {
-                        "description": "No Content"
+                        "description": "No Content",
+                        "headers": {
+                            "Set-Cookie": {
+                                "type": "string",
+                                "description": "refreshToken"
+                            }
+                        }
                     }
                 }
             }
@@ -84,7 +91,7 @@
                     "application/json"
                 ],
                 "produces": [
-                    "application/json"
+                    "text/plain"
                 ],
                 "tags": [
                     "auth"
@@ -93,8 +100,9 @@
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Refresh token",
-                        "name": "refreshToken",
+                        "default": "refreshToken=",
+                        "description": "refreshToken",
+                        "name": "Cookie",
                         "in": "header",
                         "required": true
                     }
@@ -103,12 +111,12 @@
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/dto.AuthResponseDto"
+                            "type": "string"
                         },
                         "headers": {
-                            "refreshToken": {
+                            "Set-Cookie": {
                                 "type": "string",
-                                "description": "token"
+                                "description": "refreshToken"
                             }
                         }
                     }
@@ -122,7 +130,7 @@
                     "application/json"
                 ],
                 "produces": [
-                    "application/json"
+                    "text/plain"
                 ],
                 "tags": [
                     "auth"
@@ -143,7 +151,7 @@
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/dto.AuthResponseDto"
+                            "type": "string"
                         }
                     }
                 }
@@ -151,17 +159,6 @@
         }
     },
     "definitions": {
-        "dto.AuthResponseDto": {
-            "type": "object",
-            "properties": {
-                "access": {
-                    "type": "string"
-                },
-                "refresh": {
-                    "type": "string"
-                }
-            }
-        },
         "dto.LoginRequestDto": {
             "type": "object",
             "required": [

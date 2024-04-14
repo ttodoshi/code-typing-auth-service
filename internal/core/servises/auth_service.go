@@ -4,10 +4,10 @@ import (
 	"code-typing-auth-service/internal/core/domain"
 	"code-typing-auth-service/internal/core/ports"
 	"code-typing-auth-service/internal/core/ports/dto"
-	"code-typing-auth-service/internal/core/ports/errors"
 	"code-typing-auth-service/pkg/jwt"
 	"code-typing-auth-service/pkg/logging"
 	"code-typing-auth-service/pkg/password"
+	"fmt"
 	"github.com/jinzhu/copier"
 )
 
@@ -36,7 +36,12 @@ func (s *AuthService) Register(registerRequestDto dto.RegisterRequestDto, sessio
 	}
 
 	err = copier.Copy(&user, &registerRequestDto)
-	user, err = s.userRepo.SaveUser(user)
+	if err != nil {
+		err = fmt.Errorf(`struct mapping error: %w`, ports.InternalServerError)
+		return
+	}
+
+	user, err = s.saveUser(user)
 	if err != nil {
 		return
 	}
@@ -47,11 +52,36 @@ func (s *AuthService) Register(registerRequestDto dto.RegisterRequestDto, sessio
 	}
 
 	s.resultsMigrator.MigrateSessionResults(session, user.ID.Hex())
-	_, err = s.tokenRepo.SaveRefreshToken(domain.RefreshToken{
+	_, err = s.tokenRepo.CreateRefreshToken(domain.RefreshToken{
 		User:  user.ID,
 		Token: refresh,
 	})
+	if err != nil {
+		err = fmt.Errorf(`creating refresh token error: %w`, ports.InternalServerError)
+	}
 	return
+}
+
+func (s *AuthService) saveUser(user domain.User) (domain.User, error) {
+	var err error
+	_, err = s.userRepo.GetUserByNickname(user.Nickname)
+	if err == nil {
+		err = fmt.Errorf("nickname already picked: %w", ports.BadRequestError)
+		return domain.User{}, err
+	}
+	_, err = s.userRepo.GetUserByEmail(user.Email)
+	if err == nil {
+		err = fmt.Errorf("account with this email already exists: %w", ports.BadRequestError)
+		return domain.User{}, err
+	}
+
+	user, err = s.userRepo.SaveUser(user)
+	if err != nil {
+		s.log.Warnf("user not saved due to error: %v", err)
+		err = fmt.Errorf(`saving user error: %w`, ports.InternalServerError)
+		return domain.User{}, err
+	}
+	return user, nil
 }
 
 func (s *AuthService) Login(loginRequestDto dto.LoginRequestDto, session string) (access string, refresh string, err error) {
@@ -60,15 +90,16 @@ func (s *AuthService) Login(loginRequestDto dto.LoginRequestDto, session string)
 	if err != nil {
 		user, err = s.userRepo.GetUserByEmail(loginRequestDto.Login)
 		if err != nil {
+			err = fmt.Errorf("user not found: %w", ports.BadRequestError)
 			return
 		}
 	}
 
 	err = password.VerifyPassword(user.Password, loginRequestDto.Password)
 	if err != nil {
-		return access, refresh, &errors.LoginOrPasswordDoNotMatchError{
-			Message: "login or password do not match",
-		}
+		return access, refresh, fmt.Errorf(
+			"login or password do not match: %w", ports.BadRequestError,
+		)
 	}
 
 	access, refresh, err = s.generateTokens(user)
@@ -77,16 +108,20 @@ func (s *AuthService) Login(loginRequestDto dto.LoginRequestDto, session string)
 	}
 
 	s.resultsMigrator.MigrateSessionResults(session, user.ID.Hex())
-	_, err = s.tokenRepo.SaveRefreshToken(domain.RefreshToken{
+	_, err = s.tokenRepo.CreateRefreshToken(domain.RefreshToken{
 		User:  user.ID,
 		Token: refresh,
 	})
+	if err != nil {
+		err = fmt.Errorf(`creating refresh token error: %w`, ports.InternalServerError)
+	}
 	return
 }
 
 func (s *AuthService) Refresh(oldRefreshToken string) (access string, refresh string, err error) {
 	token, err := s.tokenRepo.GetRefreshToken(oldRefreshToken)
 	if err != nil {
+		err = fmt.Errorf("refresh token not found: %w", ports.UnauthorizedError)
 		return
 	}
 
@@ -98,6 +133,9 @@ func (s *AuthService) Refresh(oldRefreshToken string) (access string, refresh st
 	}
 
 	_, err = s.tokenRepo.UpdateRefreshToken(token.Token, refresh)
+	if err != nil {
+		err = fmt.Errorf(`updating refresh token error: %w`, ports.InternalServerError)
+	}
 	return
 }
 
@@ -109,10 +147,21 @@ func (s *AuthService) generateTokens(user domain.User) (accessToken string, refr
 			Value: user.Nickname,
 		},
 	)
+	if err != nil {
+		err = fmt.Errorf(`generating tokens error: %w`, ports.InternalServerError)
+		return
+	}
 	refreshToken, err = jwt.GenerateRefreshJWT(user.ID.Hex())
+	if err != nil {
+		err = fmt.Errorf(`generating tokens error: %w`, ports.InternalServerError)
+		return
+	}
 	return
 }
 
 func (s *AuthService) Logout(refreshToken string) {
-	_ = s.tokenRepo.DeleteRefreshToken(refreshToken)
+	err := s.tokenRepo.DeleteRefreshToken(refreshToken)
+	if err != nil {
+		s.log.Warnf("refresh token delete error: %v", err)
+	}
 }

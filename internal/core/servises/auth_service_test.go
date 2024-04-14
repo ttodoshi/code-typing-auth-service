@@ -3,11 +3,11 @@ package servises
 import (
 	"code-typing-auth-service/internal/core/domain"
 	"code-typing-auth-service/internal/core/ports/dto"
-	"code-typing-auth-service/internal/core/ports/errors"
 	"code-typing-auth-service/internal/core/ports/mocks"
 	"code-typing-auth-service/pkg/jwt"
 	"code-typing-auth-service/pkg/logging/nop"
 	. "code-typing-auth-service/pkg/password"
+	"fmt"
 	"github.com/brianvoe/gofakeit/v6"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -26,18 +26,22 @@ func TestRegister(t *testing.T) {
 	resultsMigrator := new(mocks.ResultsMigrator)
 
 	userRepo.
-		On("SaveUser", mock.MatchedBy(func(arg interface{}) bool {
-			u := arg.(domain.User)
-			return u.Nickname == "already_taken" || u.Email == "already_taken"
-		})).
-		Maybe().
-		Return(domain.User{}, &errors.AlreadyExistsError{})
+		On("GetUserByNickname", "already_taken").
+		Return(domain.User{}, nil)
+	userRepo.
+		On("GetUserByNickname", mock.Anything).
+		Return(domain.User{}, fmt.Errorf(""))
+	userRepo.
+		On("GetUserByEmail", "already_taken").
+		Return(domain.User{}, nil)
+	userRepo.
+		On("GetUserByEmail", mock.Anything).
+		Return(domain.User{}, fmt.Errorf(""))
 	userRepo.
 		On("SaveUser", mock.Anything).
-		Maybe().
 		Return(domain.User{}, nil)
 	tokenRepo.
-		On("SaveRefreshToken", mock.Anything).
+		On("CreateRefreshToken", mock.Anything).
 		Return(gofakeit.UUID(), nil)
 	resultsMigrator.
 		On(
@@ -56,9 +60,6 @@ func TestRegister(t *testing.T) {
 			Password: gofakeit.Password(true, true, true, true, false, 8),
 		}, gofakeit.UUID())
 		assert.NoError(t, err)
-		userRepo.AssertExpectations(t)
-		resultsMigrator.AssertExpectations(t)
-		tokenRepo.AssertExpectations(t)
 	})
 	t.Run("unsuccessful registration due to nickname already taken", func(t *testing.T) {
 		_, _, err = authService.Register(dto.RegisterRequestDto{
@@ -67,9 +68,6 @@ func TestRegister(t *testing.T) {
 			Password: gofakeit.Password(true, true, true, true, false, 4),
 		}, gofakeit.UUID())
 		assert.Error(t, err)
-		userRepo.AssertExpectations(t)
-		resultsMigrator.AssertExpectations(t)
-		tokenRepo.AssertExpectations(t)
 	})
 	t.Run("unsuccessful registration due to email already taken", func(t *testing.T) {
 		_, _, err = authService.Register(dto.RegisterRequestDto{
@@ -78,10 +76,10 @@ func TestRegister(t *testing.T) {
 			Password: gofakeit.Password(true, true, true, true, false, 4),
 		}, gofakeit.UUID())
 		assert.Error(t, err)
-		userRepo.AssertExpectations(t)
-		resultsMigrator.AssertExpectations(t)
-		tokenRepo.AssertExpectations(t)
 	})
+	userRepo.AssertExpectations(t)
+	resultsMigrator.AssertExpectations(t)
+	tokenRepo.AssertExpectations(t)
 }
 
 func TestLogin(t *testing.T) {
@@ -103,23 +101,19 @@ func TestLogin(t *testing.T) {
 	}
 	userRepo.
 		On("GetUserByNickname", user.Nickname).
-		Maybe().
 		Return(user, nil)
 	userRepo.
 		On("GetUserByEmail", user.Email).
-		Maybe().
 		Return(user, nil)
 	userRepo.
 		On("GetUserByNickname", mock.AnythingOfType("string")).
-		Maybe().
-		Return(domain.User{}, &errors.NotFoundError{})
+		Return(domain.User{}, fmt.Errorf(""))
 	userRepo.
 		On("GetUserByEmail", mock.AnythingOfType("string")).
-		Maybe().
-		Return(domain.User{}, &errors.NotFoundError{})
+		Return(domain.User{}, fmt.Errorf(""))
 
 	tokenRepo.
-		On("SaveRefreshToken", mock.Anything).
+		On("CreateRefreshToken", mock.Anything).
 		Return(gofakeit.UUID(), nil)
 	resultsMigrator.
 		On(
@@ -137,9 +131,6 @@ func TestLogin(t *testing.T) {
 			Password: password,
 		}, gofakeit.UUID())
 		assert.NoError(t, err)
-		userRepo.AssertExpectations(t)
-		resultsMigrator.AssertExpectations(t)
-		tokenRepo.AssertExpectations(t)
 	})
 	t.Run("successful login by email", func(t *testing.T) {
 		_, _, err = authService.Login(dto.LoginRequestDto{
@@ -147,9 +138,6 @@ func TestLogin(t *testing.T) {
 			Password: password,
 		}, gofakeit.UUID())
 		assert.NoError(t, err)
-		userRepo.AssertExpectations(t)
-		resultsMigrator.AssertExpectations(t)
-		tokenRepo.AssertExpectations(t)
 	})
 	t.Run("unsuccessful login due to invalid email", func(t *testing.T) {
 		_, _, err = authService.Login(dto.LoginRequestDto{
@@ -157,9 +145,6 @@ func TestLogin(t *testing.T) {
 			Password: password,
 		}, gofakeit.UUID())
 		assert.Error(t, err)
-		userRepo.AssertExpectations(t)
-		resultsMigrator.AssertExpectations(t)
-		tokenRepo.AssertExpectations(t)
 	})
 	t.Run("unsuccessful login due to invalid nickname", func(t *testing.T) {
 		_, _, err = authService.Login(dto.LoginRequestDto{
@@ -167,9 +152,6 @@ func TestLogin(t *testing.T) {
 			Password: password,
 		}, gofakeit.UUID())
 		assert.Error(t, err)
-		userRepo.AssertExpectations(t)
-		resultsMigrator.AssertExpectations(t)
-		tokenRepo.AssertExpectations(t)
 	})
 	t.Run("unsuccessful login due to invalid password", func(t *testing.T) {
 		_, _, err = authService.Login(dto.LoginRequestDto{
@@ -177,10 +159,10 @@ func TestLogin(t *testing.T) {
 			Password: "invalid_password",
 		}, gofakeit.UUID())
 		assert.Error(t, err)
-		userRepo.AssertExpectations(t)
-		resultsMigrator.AssertExpectations(t)
-		tokenRepo.AssertExpectations(t)
 	})
+	userRepo.AssertExpectations(t)
+	resultsMigrator.AssertExpectations(t)
+	tokenRepo.AssertExpectations(t)
 }
 
 func TestRefresh(t *testing.T) {
@@ -210,7 +192,7 @@ func TestRefresh(t *testing.T) {
 		}, nil)
 	tokenRepo.
 		On("GetRefreshToken", mock.AnythingOfType("string")).
-		Return(domain.RefreshToken{}, &errors.RefreshError{})
+		Return(domain.RefreshToken{}, fmt.Errorf(""))
 	tokenRepo.
 		On("UpdateRefreshToken", refresh, mock.Anything).
 		Return(domain.RefreshToken{}, nil)
@@ -225,17 +207,14 @@ func TestRefresh(t *testing.T) {
 	t.Run("successful refresh", func(t *testing.T) {
 		_, _, err = authService.Refresh(refresh)
 		assert.NoError(t, err)
-		userRepo.AssertExpectations(t)
-		resultsMigrator.AssertExpectations(t)
-		tokenRepo.AssertExpectations(t)
 	})
 	t.Run("unsuccessful refresh due to invalid refresh token", func(t *testing.T) {
 		_, _, err = authService.Refresh("invalid_refresh_token")
 		assert.Error(t, err)
-		userRepo.AssertExpectations(t)
-		resultsMigrator.AssertExpectations(t)
-		tokenRepo.AssertExpectations(t)
 	})
+	userRepo.AssertExpectations(t)
+	resultsMigrator.AssertExpectations(t)
+	tokenRepo.AssertExpectations(t)
 }
 
 func TestLogout(t *testing.T) {
@@ -251,7 +230,7 @@ func TestLogout(t *testing.T) {
 		Return(nil)
 	tokenRepo.
 		On("DeleteRefreshToken", mock.AnythingOfType("string")).
-		Return(&errors.RefreshError{})
+		Return(fmt.Errorf(""))
 
 	// service
 	authService := NewAuthService(userRepo, tokenRepo, resultsMigrator, log)
@@ -259,8 +238,8 @@ func TestLogout(t *testing.T) {
 	t.Run("successful logout", func(t *testing.T) {
 		authService.Logout(refresh)
 		assert.NoError(t, err)
-		userRepo.AssertExpectations(t)
-		resultsMigrator.AssertExpectations(t)
-		tokenRepo.AssertExpectations(t)
 	})
+	userRepo.AssertExpectations(t)
+	resultsMigrator.AssertExpectations(t)
+	tokenRepo.AssertExpectations(t)
 }

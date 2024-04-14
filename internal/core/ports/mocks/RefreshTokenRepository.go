@@ -13,6 +13,34 @@ type RefreshTokenRepository struct {
 	mock.Mock
 }
 
+// CreateRefreshToken provides a mock function with given fields: refreshToken
+func (_m *RefreshTokenRepository) CreateRefreshToken(refreshToken domain.RefreshToken) (string, error) {
+	ret := _m.Called(refreshToken)
+
+	if len(ret) == 0 {
+		panic("no return value specified for CreateRefreshToken")
+	}
+
+	var r0 string
+	var r1 error
+	if rf, ok := ret.Get(0).(func(domain.RefreshToken) (string, error)); ok {
+		return rf(refreshToken)
+	}
+	if rf, ok := ret.Get(0).(func(domain.RefreshToken) string); ok {
+		r0 = rf(refreshToken)
+	} else {
+		r0 = ret.Get(0).(string)
+	}
+
+	if rf, ok := ret.Get(1).(func(domain.RefreshToken) error); ok {
+		r1 = rf(refreshToken)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // DeleteRefreshToken provides a mock function with given fields: refreshToken
 func (_m *RefreshTokenRepository) DeleteRefreshToken(refreshToken string) error {
 	ret := _m.Called(refreshToken)
@@ -51,34 +79,6 @@ func (_m *RefreshTokenRepository) GetRefreshToken(refreshToken string) (domain.R
 	}
 
 	if rf, ok := ret.Get(1).(func(string) error); ok {
-		r1 = rf(refreshToken)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
-// SaveRefreshToken provides a mock function with given fields: refreshToken
-func (_m *RefreshTokenRepository) SaveRefreshToken(refreshToken domain.RefreshToken) (string, error) {
-	ret := _m.Called(refreshToken)
-
-	if len(ret) == 0 {
-		panic("no return value specified for SaveRefreshToken")
-	}
-
-	var r0 string
-	var r1 error
-	if rf, ok := ret.Get(0).(func(domain.RefreshToken) (string, error)); ok {
-		return rf(refreshToken)
-	}
-	if rf, ok := ret.Get(0).(func(domain.RefreshToken) string); ok {
-		r0 = rf(refreshToken)
-	} else {
-		r0 = ret.Get(0).(string)
-	}
-
-	if rf, ok := ret.Get(1).(func(domain.RefreshToken) error); ok {
 		r1 = rf(refreshToken)
 	} else {
 		r1 = ret.Error(1)

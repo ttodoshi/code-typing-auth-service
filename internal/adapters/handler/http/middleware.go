@@ -1,7 +1,8 @@
 package http
 
 import (
-	"code-typing-auth-service/internal/core/ports/errors"
+	"code-typing-auth-service/internal/core/ports"
+	"errors"
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"time"
@@ -22,26 +23,15 @@ func ErrorHandlerMiddleware() gin.HandlerFunc {
 		if len(c.Errors) > 0 {
 			err := c.Errors.Last()
 			var responseStatus int
-			switch err.Err.(type) {
-			case *errors.BodyMappingError:
+			if errors.Is(err, ports.BadRequestError) {
 				responseStatus = http.StatusBadRequest
-			case *errors.LoginOrPasswordDoNotMatchError:
-				responseStatus = http.StatusBadRequest
-			case *errors.CookieGettingError:
+			} else if errors.Is(err, ports.UnauthorizedError) {
 				responseStatus = http.StatusUnauthorized
-			case *errors.RefreshError:
-				responseStatus = http.StatusUnauthorized
-			case *errors.AlreadyExistsError:
+			} else if errors.Is(err, ports.ForbiddenError) {
 				responseStatus = http.StatusForbidden
-			case *errors.NotFoundError:
+			} else if errors.Is(err, ports.NotFoundError) {
 				responseStatus = http.StatusNotFound
-			case *errors.MappingError:
-				responseStatus = http.StatusInternalServerError
-			case *errors.TokenGenerationError:
-				responseStatus = http.StatusInternalServerError
-			case *errors.TokenParsingError:
-				responseStatus = http.StatusInternalServerError
-			default:
+			} else {
 				responseStatus = http.StatusInternalServerError
 			}
 			c.JSON(responseStatus, errorResponse{

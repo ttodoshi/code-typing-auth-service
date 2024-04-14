@@ -3,9 +3,9 @@ package api
 import (
 	"code-typing-auth-service/internal/core/ports"
 	"code-typing-auth-service/internal/core/ports/dto"
-	"code-typing-auth-service/internal/core/ports/errors"
 	"code-typing-auth-service/pkg/jwt"
 	"code-typing-auth-service/pkg/logging"
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"os"
 )
@@ -43,10 +43,10 @@ func (h *AuthHandler) Register(c *gin.Context) {
 	sessionCookie, err := c.Cookie("SESSION")
 	var registerRequestDto dto.RegisterRequestDto
 	if err = c.ShouldBindJSON(&registerRequestDto); err != nil {
-		err = c.Error(&errors.BodyMappingError{
-			Message: "error in request body",
-		})
 		h.log.Warn("error in request body")
+		err = c.Error(
+			fmt.Errorf("error in request body: %w", ports.BadRequestError),
+		)
 		return
 	}
 
@@ -77,10 +77,10 @@ func (h *AuthHandler) Login(c *gin.Context) {
 	sessionCookie, err := c.Cookie("SESSION")
 	var loginRequestDto dto.LoginRequestDto
 	if err = c.ShouldBindJSON(&loginRequestDto); err != nil {
-		err = c.Error(&errors.BodyMappingError{
-			Message: "error in request body",
-		})
 		h.log.Warn("error in request body")
+		err = c.Error(
+			fmt.Errorf("error in request body: %w", ports.BadRequestError),
+		)
 		return
 	}
 
@@ -110,10 +110,10 @@ func (h *AuthHandler) Refresh(c *gin.Context) {
 
 	refreshTokenCookie, err := c.Cookie("refreshToken")
 	if err != nil || refreshTokenCookie == "" {
-		err = c.Error(&errors.CookieGettingError{
-			Message: "error while getting refresh token cookie",
-		})
-		h.log.Warn("error while getting refreshTokenCookie")
+		h.log.Warn("error while getting refresh token cookie")
+		err = c.Error(
+			fmt.Errorf("error while getting refresh token cookie: %w", ports.UnauthorizedError),
+		)
 		return
 	}
 
@@ -143,10 +143,10 @@ func (h *AuthHandler) Logout(c *gin.Context) {
 
 	refreshTokenCookie, err := c.Cookie("refreshToken")
 	if err != nil || refreshTokenCookie == "" {
-		err = c.Error(&errors.CookieGettingError{
-			Message: "error while getting refresh token cookie",
-		})
-		h.log.Warn("error while getting refreshTokenCookie")
+		h.log.Warn("error while getting refresh token cookie")
+		err = c.Error(
+			fmt.Errorf("error while getting refresh token cookie: %w", ports.BadRequestError),
+		)
 		return
 	}
 

@@ -28,7 +28,13 @@ type UserRepository interface {
 	SaveUser(user domain.User) (domain.User, error)
 }
 
-//go:generate go run github.com/vektra/mockery/v2@v2.39.1 --name=ResultsMigrator
-type ResultsMigrator interface {
-	MigrateSessionResults(session string, userID string)
+const (
+	AuthExchange = "auth-exchange"
+)
+
+var Exchanges = []string{AuthExchange}
+
+//go:generate go run github.com/vektra/mockery/v2@v2.39.1 --name=EventDispatcher
+type EventDispatcher interface {
+	Dispatch(event domain.Event)
 }

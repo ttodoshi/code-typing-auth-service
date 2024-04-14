@@ -7,6 +7,7 @@ import (
 	"code-typing-auth-service/pkg/jwt"
 	"code-typing-auth-service/pkg/logging"
 	"code-typing-auth-service/pkg/password"
+	"encoding/json"
 	"fmt"
 	"github.com/jinzhu/copier"
 )
@@ -14,15 +15,15 @@ import (
 type AuthService struct {
 	userRepo        ports.UserRepository
 	tokenRepo       ports.RefreshTokenRepository
-	resultsMigrator ports.ResultsMigrator
+	eventDispatcher ports.EventDispatcher
 	log             logging.Logger
 }
 
-func NewAuthService(userRepo ports.UserRepository, tokenRepo ports.RefreshTokenRepository, resultsMigrator ports.ResultsMigrator, log logging.Logger) ports.AuthService {
+func NewAuthService(userRepo ports.UserRepository, tokenRepo ports.RefreshTokenRepository, resultsMigrator ports.EventDispatcher, log logging.Logger) ports.AuthService {
 	return &AuthService{
 		userRepo:        userRepo,
 		tokenRepo:       tokenRepo,
-		resultsMigrator: resultsMigrator,
+		eventDispatcher: resultsMigrator,
 		log:             log,
 	}
 }
@@ -51,14 +52,15 @@ func (s *AuthService) Register(registerRequestDto dto.RegisterRequestDto, sessio
 		return
 	}
 
-	s.resultsMigrator.MigrateSessionResults(session, user.ID.Hex())
 	_, err = s.tokenRepo.CreateRefreshToken(domain.RefreshToken{
 		User:  user.ID,
 		Token: refresh,
 	})
 	if err != nil {
 		err = fmt.Errorf(`creating refresh token error: %w`, ports.InternalServerError)
+		return
 	}
+	s.dispatchAuthEvent(session, user)
 	return
 }
 
@@ -107,7 +109,6 @@ func (s *AuthService) Login(loginRequestDto dto.LoginRequestDto, session string)
 		return
 	}
 
-	s.resultsMigrator.MigrateSessionResults(session, user.ID.Hex())
 	_, err = s.tokenRepo.CreateRefreshToken(domain.RefreshToken{
 		User:  user.ID,
 		Token: refresh,
@@ -115,7 +116,30 @@ func (s *AuthService) Login(loginRequestDto dto.LoginRequestDto, session string)
 	if err != nil {
 		err = fmt.Errorf(`creating refresh token error: %w`, ports.InternalServerError)
 	}
+	s.dispatchAuthEvent(session, user)
 	return
+}
+
+func (s *AuthService) dispatchAuthEvent(session string, user domain.User) {
+	if session == "" {
+		return
+	}
+
+	body, err := json.Marshal(
+		map[string]interface{}{
+			"session": session,
+			"userID":  user.ID.Hex(),
+		},
+	)
+	if err != nil {
+		s.log.Warnf(`error marshaling event body: %v`, err)
+		return
+	}
+
+	s.eventDispatcher.Dispatch(domain.Event{
+		Exchange: ports.AuthExchange,
+		Body:     body,
+	})
 }
 
 func (s *AuthService) Refresh(oldRefreshToken string) (access string, refresh string, err error) {

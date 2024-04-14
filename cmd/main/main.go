@@ -84,10 +84,10 @@ func initRouter(log logging.Logger, channel *amqp.Channel) *http.Router {
 	refreshTokenRepository := mongodb.NewRefreshTokenRepository()
 	userRepository := mongodb.NewUserRepository()
 
-	resultsMigrator := rabbitmq.NewResultsMigrator(channel, log)
+	eventDispatcher := rabbitmq.NewEventDispatcher(channel, log)
 	authService := servises.NewAuthService(
 		userRepository, refreshTokenRepository,
-		resultsMigrator,
+		eventDispatcher,
 		log,
 	)
 	return http.NewRouter(

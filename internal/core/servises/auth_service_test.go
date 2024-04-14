@@ -23,7 +23,7 @@ func TestRegister(t *testing.T) {
 	// mocks
 	userRepo := new(mocks.UserRepository)
 	tokenRepo := new(mocks.RefreshTokenRepository)
-	resultsMigrator := new(mocks.ResultsMigrator)
+	eventDispatcher := new(mocks.EventDispatcher)
 
 	userRepo.
 		On("GetUserByNickname", "already_taken").
@@ -43,15 +43,14 @@ func TestRegister(t *testing.T) {
 	tokenRepo.
 		On("CreateRefreshToken", mock.Anything).
 		Return(gofakeit.UUID(), nil)
-	resultsMigrator.
+	eventDispatcher.
 		On(
-			"MigrateSessionResults",
-			mock.AnythingOfType("string"),
-			mock.AnythingOfType("string"),
+			"Dispatch",
+			mock.Anything,
 		).Return()
 
 	// service
-	authService := NewAuthService(userRepo, tokenRepo, resultsMigrator, log)
+	authService := NewAuthService(userRepo, tokenRepo, eventDispatcher, log)
 
 	t.Run("successful registration", func(t *testing.T) {
 		_, _, err = authService.Register(dto.RegisterRequestDto{
@@ -78,7 +77,7 @@ func TestRegister(t *testing.T) {
 		assert.Error(t, err)
 	})
 	userRepo.AssertExpectations(t)
-	resultsMigrator.AssertExpectations(t)
+	eventDispatcher.AssertExpectations(t)
 	tokenRepo.AssertExpectations(t)
 }
 
@@ -90,7 +89,7 @@ func TestLogin(t *testing.T) {
 	// mocks
 	userRepo := new(mocks.UserRepository)
 	tokenRepo := new(mocks.RefreshTokenRepository)
-	resultsMigrator := new(mocks.ResultsMigrator)
+	eventDispatcher := new(mocks.EventDispatcher)
 
 	password := gofakeit.Password(true, true, true, true, false, 8)
 	hashPassword, err := HashPassword(password)
@@ -115,15 +114,14 @@ func TestLogin(t *testing.T) {
 	tokenRepo.
 		On("CreateRefreshToken", mock.Anything).
 		Return(gofakeit.UUID(), nil)
-	resultsMigrator.
+	eventDispatcher.
 		On(
-			"MigrateSessionResults",
-			mock.AnythingOfType("string"),
-			mock.AnythingOfType("string"),
+			"Dispatch",
+			mock.Anything,
 		).Return()
 
 	// service
-	authService := NewAuthService(userRepo, tokenRepo, resultsMigrator, log)
+	authService := NewAuthService(userRepo, tokenRepo, eventDispatcher, log)
 
 	t.Run("successful login by nickname", func(t *testing.T) {
 		_, _, err = authService.Login(dto.LoginRequestDto{
@@ -161,7 +159,7 @@ func TestLogin(t *testing.T) {
 		assert.Error(t, err)
 	})
 	userRepo.AssertExpectations(t)
-	resultsMigrator.AssertExpectations(t)
+	eventDispatcher.AssertExpectations(t)
 	tokenRepo.AssertExpectations(t)
 }
 
@@ -173,7 +171,7 @@ func TestRefresh(t *testing.T) {
 	// mocks
 	userRepo := new(mocks.UserRepository)
 	tokenRepo := new(mocks.RefreshTokenRepository)
-	resultsMigrator := new(mocks.ResultsMigrator)
+	eventDispatcher := new(mocks.EventDispatcher)
 
 	password := gofakeit.Password(true, true, true, true, false, 8)
 	hashPassword, err := HashPassword(password)
@@ -202,7 +200,7 @@ func TestRefresh(t *testing.T) {
 		Return(user, nil)
 
 	// service
-	authService := NewAuthService(userRepo, tokenRepo, resultsMigrator, log)
+	authService := NewAuthService(userRepo, tokenRepo, eventDispatcher, log)
 
 	t.Run("successful refresh", func(t *testing.T) {
 		_, _, err = authService.Refresh(refresh)
@@ -213,7 +211,7 @@ func TestRefresh(t *testing.T) {
 		assert.Error(t, err)
 	})
 	userRepo.AssertExpectations(t)
-	resultsMigrator.AssertExpectations(t)
+	eventDispatcher.AssertExpectations(t)
 	tokenRepo.AssertExpectations(t)
 }
 
@@ -222,7 +220,7 @@ func TestLogout(t *testing.T) {
 	// mocks
 	userRepo := new(mocks.UserRepository)
 	tokenRepo := new(mocks.RefreshTokenRepository)
-	resultsMigrator := new(mocks.ResultsMigrator)
+	eventDispatcher := new(mocks.EventDispatcher)
 
 	refresh, err := jwt.GenerateRefreshJWT(gofakeit.UUID())
 	tokenRepo.
@@ -233,13 +231,13 @@ func TestLogout(t *testing.T) {
 		Return(fmt.Errorf(""))
 
 	// service
-	authService := NewAuthService(userRepo, tokenRepo, resultsMigrator, log)
+	authService := NewAuthService(userRepo, tokenRepo, eventDispatcher, log)
 
 	t.Run("successful logout", func(t *testing.T) {
 		authService.Logout(refresh)
 		assert.NoError(t, err)
 	})
 	userRepo.AssertExpectations(t)
-	resultsMigrator.AssertExpectations(t)
+	eventDispatcher.AssertExpectations(t)
 	tokenRepo.AssertExpectations(t)
 }

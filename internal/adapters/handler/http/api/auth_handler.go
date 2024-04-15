@@ -1,12 +1,12 @@
 package api
 
 import (
-	"code-typing-auth-service/internal/core/ports"
-	"code-typing-auth-service/internal/core/ports/dto"
-	"code-typing-auth-service/pkg/jwt"
-	"code-typing-auth-service/pkg/logging"
 	"fmt"
 	"github.com/gin-gonic/gin"
+	"github.com/ttodoshi/code-typing-auth-service/internal/core/ports"
+	"github.com/ttodoshi/code-typing-auth-service/internal/core/ports/dto"
+	"github.com/ttodoshi/code-typing-auth-service/pkg/jwt"
+	"github.com/ttodoshi/code-typing-auth-service/pkg/logging"
 	"os"
 )
 

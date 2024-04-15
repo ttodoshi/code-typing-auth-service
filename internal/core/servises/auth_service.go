@@ -1,15 +1,15 @@
 package servises
 
 import (
-	"code-typing-auth-service/internal/core/domain"
-	"code-typing-auth-service/internal/core/ports"
-	"code-typing-auth-service/internal/core/ports/dto"
-	"code-typing-auth-service/pkg/jwt"
-	"code-typing-auth-service/pkg/logging"
-	"code-typing-auth-service/pkg/password"
 	"encoding/json"
 	"fmt"
 	"github.com/jinzhu/copier"
+	"github.com/ttodoshi/code-typing-auth-service/internal/core/domain"
+	"github.com/ttodoshi/code-typing-auth-service/internal/core/ports"
+	"github.com/ttodoshi/code-typing-auth-service/internal/core/ports/dto"
+	"github.com/ttodoshi/code-typing-auth-service/pkg/jwt"
+	"github.com/ttodoshi/code-typing-auth-service/pkg/logging"
+	"github.com/ttodoshi/code-typing-auth-service/pkg/password"
 )
 
 type AuthService struct {

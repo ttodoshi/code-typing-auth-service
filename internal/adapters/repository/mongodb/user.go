@@ -1,10 +1,10 @@
 package mongodb
 
 import (
-	"code-typing-auth-service/internal/core/domain"
-	"code-typing-auth-service/internal/core/ports"
 	"fmt"
 	"github.com/kamva/mgm/v3"
+	"github.com/ttodoshi/code-typing-auth-service/internal/core/domain"
+	"github.com/ttodoshi/code-typing-auth-service/internal/core/ports"
 	"go.mongodb.org/mongo-driver/bson"
 )
 

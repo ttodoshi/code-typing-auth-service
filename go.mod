@@ -1,4 +1,4 @@
-module code-typing-auth-service
+module github.com/ttodoshi/code-typing-auth-service
 
 go 1.21
 

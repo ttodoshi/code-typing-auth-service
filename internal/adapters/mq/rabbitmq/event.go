@@ -1,11 +1,11 @@
 package rabbitmq
 
 import (
-	"code-typing-auth-service/internal/core/domain"
-	"code-typing-auth-service/internal/core/ports"
-	"code-typing-auth-service/pkg/logging"
 	"context"
 	amqp "github.com/rabbitmq/amqp091-go"
+	"github.com/ttodoshi/code-typing-auth-service/internal/core/domain"
+	"github.com/ttodoshi/code-typing-auth-service/internal/core/ports"
+	"github.com/ttodoshi/code-typing-auth-service/pkg/logging"
 	"time"
 )
 

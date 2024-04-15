@@ -1,9 +1,9 @@
 package http
 
 import (
-	"code-typing-auth-service/internal/core/ports"
 	"errors"
 	"github.com/gin-gonic/gin"
+	"github.com/ttodoshi/code-typing-auth-service/internal/core/ports"
 	"net/http"
 	"time"
 )

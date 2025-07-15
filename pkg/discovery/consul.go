@@ -1,10 +1,12 @@
 package discovery
 
 import (
+	"fmt"
 	"github.com/hashicorp/consul/api"
 	"log"
 	"os"
 	"strconv"
+	"strings"
 )
 
 func InitServiceDiscovery() {
@@ -26,10 +28,18 @@ func InitServiceDiscovery() {
 		log.Fatal("port parse error")
 	}
 
+	tags := strings.Split(os.Getenv("CONSUL_TAGS"), ",")
 	service := &api.AgentServiceRegistration{
 		Name:    os.Getenv("CONSUL_SERVICE_NAME"),
 		Port:    parsedPort,
 		Address: os.Getenv("CONSUL_SERVICE_ADDRESS"),
+		Tags:    tags,
+		Check: &api.AgentServiceCheck{
+			HTTP:                           fmt.Sprintf("http://%s:%d/health", os.Getenv("CONSUL_SERVICE_ADDRESS"), parsedPort),
+			Interval:                       "10s",
+			Timeout:                        "2s",
+			DeregisterCriticalServiceAfter: "1m",
+		},
 	}
 	err = agent.ServiceRegister(service)
 	if err != nil {

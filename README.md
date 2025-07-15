@@ -15,5 +15,5 @@ make run
 ### Build docker container
 
 ```shell
-docker build . -t ghcr.io/ttodoshi/code-typing-auth-service:latest
+docker buildx build . -t ghcr.io/ttodoshi/code-typing-auth-service:latest
 ```
